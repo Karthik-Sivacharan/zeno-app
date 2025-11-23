@@ -17,11 +17,12 @@ struct ContentView: View {
                 SplashView()
                     .transition(.opacity)
                     .zIndex(1) // Ensure Splash stays on top during transition
-                    .onAppear {
+                    .task {
                         // Wait for Splash animation
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-                        showSplash = false
-                    }
+                        try? await Task.sleep(for: .seconds(2.5))
+                        withAnimation {
+                            showSplash = false
+                        }
                     }
             } else {
                 Group {
@@ -38,7 +39,7 @@ struct ContentView: View {
                             .padding()
                             .background(ZenoSemanticTokens.Theme.secondary)
                             .foregroundColor(ZenoSemanticTokens.Theme.secondaryForeground)
-                            .cornerRadius(ZenoSemanticTokens.Radius.md)
+                            .clipShape(RoundedRectangle(cornerRadius: ZenoSemanticTokens.Radius.md))
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .background(ZenoSemanticTokens.Theme.background)
