@@ -1,0 +1,76 @@
+---
+description: Documentation of the Zeno project structure, folder layout, and architectural layers.
+globs: ["**/*.swift"]
+---
+
+# Zeno Project Architecture
+
+## 1. High-Level Overview
+Zeno follows a **Features-First** directory structure with a clear separation between **UI**, **Domain Logic**, and **Infrastructure**.
+
+### Layers
+1.  **UI Layer** (`Features/`): SwiftUI Views and ViewModels.
+2.  **Domain Layer** (`Core/Domain/`, `Core/Models/`): Pure logic, data models, entities. Independent of UI.
+3.  **Infrastructure Layer** (`Core/Services/`): Implementations of side-effects (HealthKit, Persistence, API).
+
+## 2. Directory Structure
+
+```text
+Zeno/
+├── App/                    # App entry point (ZenoApp.swift)
+├── Core/
+│   ├── DesignSystem/       # Tokens, Primitives, Semantics, Components
+│   ├── Domain/             # Business Logic (Calculators, UseCases)
+│   ├── Models/             # Data Structs (UserProfile, StepBalance)
+│   └── Services/           # Service Implementations (HealthKitService)
+├── Features/               # Feature-based grouping
+│   ├── Onboarding/
+│   ├── Home/
+│   └── Settings/
+├── Resources/              # Assets, Fonts, Info.plist
+└── Utils/                  # Extensions, Helpers
+```
+
+## 3. Dependency Injection
+- Views should **not** instantiate Services directly.
+- Use **Protocols** for all services (`HealthDataProviding`, `UserProfileStore`).
+- Inject dependencies into ViewModels via `init`.
+- Inject ViewModels into Views via `init`.
+
+**Example:**
+```swift
+// Protocol
+protocol HealthDataProviding {
+    func getSteps() async throws -> Int
+}
+
+// ViewModel
+class HomeViewModel: ObservableObject {
+    let healthService: HealthDataProviding
+    init(healthService: HealthDataProviding) { ... }
+}
+
+// Composition Root (App or Parent View)
+let service = HealthKitService()
+let viewModel = HomeViewModel(healthService: service)
+HomeView(viewModel: viewModel)
+```
+
+## 4. Core Models (Domain)
+These models are pure Swift structs. They do not import SwiftUI or HealthKit directly if possible.
+
+- `UserProfile`: ID, preferences.
+- `StepBalance`: Date, steps, credits calculated.
+- `AppLimit`: Configuration for blocked apps.
+
+## 5. Data Flow
+1.  **Event**: User performs action or View appears.
+2.  **Action**: View calls method on ViewModel.
+3.  **Logic**: ViewModel calls Service (Service returns Domain Model).
+4.  **Mutation**: ViewModel maps Domain Model to View State.
+5.  **Render**: View updates based on `@Published` properties.
+
+## 6. Backend Readiness
+- Currently, the app is **Local-First** (MVP).
+- Services implement protocols. In the future, we can swap `LocalStepStore` with `RemoteStepStore` without changing the Views or ViewModels.
+- Avoid tight coupling to `UserDefaults` or specific database libraries in the ViewModels. Use Repository pattern.

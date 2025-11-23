@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Zeno needs access to your step count to convert your movement into screen time credits.</string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>SpaceGrotesk-Bold.ttf</string>
+		<string>SpaceGrotesk-Light.ttf</string>
+		<string>SpaceGrotesk-Medium.ttf</string>
+		<string>SpaceGrotesk-Regular.ttf</string>
+		<string>SpaceGrotesk-SemiBold.ttf</string>
+		<string>SpaceMono-Bold.ttf</string>
+		<string>SpaceMono-BoldItalic.ttf</string>
+		<string>SpaceMono-Italic.ttf</string>
+		<string>SpaceMono-Regular.ttf</string>
+		<string>Syne-Bold.ttf</string>
+		<string>Syne-ExtraBold.ttf</string>
+		<string>Syne-Medium.ttf</string>
+		<string>Syne-Regular.ttf</string>
+		<string>Syne-SemiBold.ttf</string>
+	</array>
+</dict>
+</plist>

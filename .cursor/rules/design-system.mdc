@@ -1,0 +1,91 @@
+---
+description: Comprehensive guide to the Zeno Design System (Tokens, Typography, Colors, Spacing).
+globs: ["**/*.swift"]
+---
+
+# Zeno Design System Rules
+
+## 1. Core Principle: Token-First Design
+- **NEVER** hardcode values for colors, fonts, spacing, radius, or shadows.
+- **ALWAYS** use the design system tokens.
+- **HIERARCHY**: Prefer **Semantic Tokens** (`ZenoSemanticTokens`) over **Primitive Tokens** (`ZenoTokens`).
+
+## 2. Token Usage Guide
+
+### 🎨 Colors
+**Goal**: Use semantic names that describe *usage*, not appearance.
+
+- **Primary Source**: `ZenoSemanticTokens.Theme`
+  - `background`, `foreground` (Page basics)
+  - `card`, `cardForeground` (Surfaces)
+  - `primary`, `primaryForeground` (Main actions)
+  - `destructive`, `destructiveForeground` (Errors/Delete)
+  - `muted`, `mutedForeground` (Subtle text/bgs)
+  - `accent`, `accentForeground` (Interactive states)
+  
+- **Fallback Source** (Only if no semantic token fits): `ZenoTokens.ColorBase`
+  - `Olive`, `Sand`, `Brass`, `Acid`, `Clay`, `Ember`, `Silt`, `Moss`, `Stone`.
+
+**Example:**
+```swift
+// ✅ Good
+.background(ZenoSemanticTokens.Theme.background)
+.foregroundColor(ZenoSemanticTokens.Theme.primary)
+
+// ❌ Avoid (unless creating a new semantic token)
+.background(ZenoTokens.ColorBase.Olive._900)
+```
+
+### 🔠 Typography
+**Source**: `ZenoTokens.Typography` (Primitives)
+
+- **Display**: `displayLarge`, `displayMedium`, `displaySmall`, `displayXSmall` (Syne ExtraBold)
+- **Title**: `titleLarge` ... `titleXXSmall` (Space Grotesk Regular)
+- **Body**: `bodyLarge` ... `bodyXSmall` (Space Grotesk Regular)
+- **Label**: `labelLarge` ... `labelXSmall` (Space Grotesk Regular)
+- **Mono**: `monoLarge` ... `monoSmall` (Space Mono Medium)
+
+**Example:**
+```swift
+Text("Zeno").font(ZenoTokens.Typography.displayLarge)
+```
+
+### 📏 Spacing & Layout
+**Source**: `ZenoSemanticTokens.Space`
+
+- Values: `xs`, `sm`, `md`, `lg`, `xl`, `xxl`
+- Use for `VStack`/`HStack` spacing and `.padding()`.
+
+**Example:**
+```swift
+VStack(spacing: ZenoSemanticTokens.Space.md) { ... }
+    .padding(ZenoSemanticTokens.Space.lg)
+```
+
+### 🟡 Radius (Corner Rounding)
+**Source**: `ZenoSemanticTokens.Radius`
+
+- Values: `none`, `sm`, `md`, `lg`, `xl`, `pill`
+
+### 🌑 Shadows & Effects
+**Source**: `ZenoSemanticTokens.Shadow` / `ZenoSemanticTokens.Blur`
+
+- **Shadows**: `none`, `card`, `elevated`, `overlay`
+- **Blur**: `backgroundSoft`, `backgroundStrong`, `overlay`
+
+### ⚡️ Motion
+**Source**: `ZenoSemanticTokens.Motion`
+
+- **Durations**: `snap` (0.15s), `fast` (0.3s), `medium` (0.5s), `slow` (0.8s)
+- **Curves**: `mechanical`, `liquid`, `standard`
+
+## 3. Component Construction
+- Do not create component-specific tokens (e.g., `ButtonPrimary.background`) outside of the component.
+- Map component states directly to `ZenoSemanticTokens` or `ZenoTokens` inside the view.
+- **Gradients**: Use `ZenoSemanticTokens.Gradients` (e.g., `swampBody`, `acidFlow`) for rich backgrounds.
+
+## 4. Refactoring Check
+If you see:
+- `Color(.red)` -> Change to `ZenoSemanticTokens.Theme.destructive` or `ZenoTokens.ColorBase.Clay._500`.
+- `.padding(16)` -> Change to `.padding(ZenoSemanticTokens.Space.md)`.
+- `Font.system(size: 20)` -> Change to `ZenoTokens.Typography.titleXSmall`.

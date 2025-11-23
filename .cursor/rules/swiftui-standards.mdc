@@ -1,0 +1,104 @@
+---
+description: Best practices for writing clean, modern (iOS 17+), and maintainable SwiftUI code in Zeno.
+globs: ["**/*.swift"]
+alwaysApply: true
+---
+
+# Zeno SwiftUI Standards
+
+## 1. General Principles
+- **Declarative & Simple**: Prefer simple, readable, composed views over massive "God Views".
+- **Functional**: Use immutable value types (`struct`) for data models.
+- **No Magic Numbers**: Always use `ZenoTokens` / `ZenoSemanticTokens`.
+- **Target**: iOS 17.0+ Minimum Deployment Target.
+
+## 2. View Architecture (Modern MVVM)
+We use the **Observation Framework** (iOS 17+). Do NOT use `ObservableObject` or `@StateObject`.
+
+### The View (`View`)
+- **Responsibility**: Layout and rendering ONLY.
+- **State**:
+  - Use `@State` for local UI variables (toggles, simple navigation).
+  - Use `@State` to hold the ViewModel if the View owns it.
+  - Use `let` (plain dependency) if the ViewModel is passed in from a parent.
+
+```swift
+struct HomeView: View {
+    // View owns this ViewModel
+    @State private var viewModel = HomeViewModel()
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: ZenoSemanticTokens.Space.md) {
+                Text("Steps: \(viewModel.stepCount)")
+                    .font(ZenoTokens.Typography.displayLarge)
+            }
+            .task {
+                await viewModel.loadData()
+            }
+        }
+    }
+}
+```
+
+### The ViewModel (`@Observable`)
+- **Responsibility**: Business logic, state management, and interacting with Services (HealthKit/FamilyControls).
+- **Syntax**: Use the `@Observable` macro. No need for `@Published`.
+- **Concurrency**: Use `async/await`.
+
+```swift
+@Observable
+class HomeViewModel {
+    var state: ViewState = .idle
+    var stepCount: Int = 0
+    
+    private let healthService: HealthDataProviding
+
+    init(healthService: HealthDataProviding = HealthService()) {
+        self.healthService = healthService
+    }
+    
+    func loadData() async {
+        do {
+            self.stepCount = try await healthService.fetchTodaySteps()
+        } catch {
+            // Handle errors (e.g. permissions not granted)
+            print("Error: \(error)")
+        }
+    }
+}
+```
+
+## 3. Swift Modern Practices
+- **Concurrency**: Strict usage of `Task`, `async`, `await`. NO completion handlers.
+- **Navigation**: Use `NavigationStack` with type-safe routing (`.navigationDestination(for:)`). Do NOT use `NavigationView`.
+- **Access Control**: Default to `private`.
+- **Implicit Returns**: Omit `return` for single-expression functions.
+
+## 4. Domain Specific Rules (Zeno App)
+### HealthKit
+- Ensure HealthKit logic checks for authorization status before querying.
+- Handle cases where steps are unavailable (e.g. initial install) without crashing.
+
+### Blocking Logic (Screen Time)
+- Use **FamilyControls** to authorize access.
+- Use **ManagedSettings** to apply shields (locks).
+- Use **DeviceActivity** for monitoring.
+- **Note**: These features only work on physical devices with the correct entitlements.
+- **Services**: All logic for Steps and Locking must live in `Core/Services/`, not in the View.
+
+## 5. UI Construction Rules
+- **Modifiers**: Order matters. Layout -> Style -> Gestures.
+- **Tokens**: NEVER use `Color.red` or `16.0`. Use `ZenoSemanticTokens.Theme.destructive` or `ZenoSemanticTokens.Space.md`.
+- **Previews**: 
+  - Previews are helpful for UI layout but optional for logic.
+  - Since we test on device, Previews do not need complex mocks, but ensure Views don't crash if services are missing.
+
+## 6. Error Handling
+- **User Facing**: Don't show raw error strings. Map errors to user-friendly messages (e.g., "We couldn't count your steps. Check permissions.").
+- **Empty States**: Always handle the "0 steps" or "Empty List" state visually.
+
+## 7. Common Pitfalls to Avoid
+- **Force Unwrapping**: 🚫 `data!`. ✅ `if let data`.
+- **Hardcoded Colors**: 🚫 `.background(Color(hex: "123456"))`. ✅ `.background(ZenoSemanticTokens.Theme.background)`.
+- **Logic in Body**: 🚫 `if calculateStuff() > 10`. ✅ Move `calculateStuff` to ViewModel, expose a var `isUnlocked: Bool`.
