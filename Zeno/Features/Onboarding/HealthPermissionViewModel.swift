@@ -1,8 +1,9 @@
 import Foundation
-import Combine
+import Observation
 
 @MainActor
-class HealthPermissionViewModel: ObservableObject {
+@Observable
+class HealthPermissionViewModel {
     
     enum PermissionState {
         case idle
@@ -12,9 +13,9 @@ class HealthPermissionViewModel: ObservableObject {
         case error(String)
     }
     
-    @Published var state: PermissionState = .idle
-    @Published var averageSteps: Int = 0
-    @Published var potentialCredits: Int = 0
+    var state: PermissionState = .idle
+    var averageSteps: Int = 0
+    var potentialCredits: Int = 0
     
     private let healthService: HealthDataProviding
     private let calculator: StepCreditsCalculator

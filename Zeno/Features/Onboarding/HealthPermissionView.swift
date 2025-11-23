@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct HealthPermissionView: View {
-    @StateObject private var viewModel = HealthPermissionViewModel()
+    @State private var viewModel = HealthPermissionViewModel()
     let onNext: () -> Void
     
     var body: some View {
