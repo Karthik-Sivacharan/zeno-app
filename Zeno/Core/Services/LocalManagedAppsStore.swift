@@ -1,4 +1,5 @@
 import Foundation
+import FamilyControls
 
 class LocalManagedAppsStore: ManagedAppsStoring {
     
@@ -26,6 +27,12 @@ class LocalManagedAppsStore: ManagedAppsStoring {
         }
     }
     
+    func updateSelection(_ selection: FamilyActivitySelection) {
+        var config = loadConfig()
+        config.selection = selection
+        saveConfig(config)
+    }
+    
     func logUnlock(duration: Int, cost: Int, appName: String?) {
         var config = loadConfig()
         let session = UnlockSession(
@@ -37,19 +44,4 @@ class LocalManagedAppsStore: ManagedAppsStoring {
         config.unlockHistory.append(session)
         saveConfig(config)
     }
-    
-    func addApp(_ name: String) {
-        var config = loadConfig()
-        if !config.manualSelection.contains(name) {
-            config.manualSelection.append(name)
-            saveConfig(config)
-        }
-    }
-    
-    func removeApp(_ name: String) {
-        var config = loadConfig()
-        config.manualSelection.removeAll { $0 == name }
-        saveConfig(config)
-    }
 }
-

@@ -1,4 +1,5 @@
 import Foundation
+import FamilyControls
 
 // MARK: - Step Credits Store Protocol
 
@@ -36,7 +37,5 @@ protocol ManagedAppsStoring {
     func loadConfig() -> ManagedAppsConfig
     func saveConfig(_ config: ManagedAppsConfig)
     func logUnlock(duration: Int, cost: Int, appName: String?)
-    func addApp(_ name: String)
-    func removeApp(_ name: String)
+    func updateSelection(_ selection: FamilyActivitySelection)
 }
-

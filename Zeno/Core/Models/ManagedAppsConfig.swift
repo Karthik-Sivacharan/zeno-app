@@ -1,14 +1,14 @@
 import Foundation
+import FamilyControls
 
 struct ManagedAppsConfig: Codable, Equatable {
-    /// List of app names or IDs that are manually tracked/blocked
-    var manualSelection: [String]
+    /// The set of apps, categories, and websites selected by the user to be managed.
+    var selection: FamilyActivitySelection
     
     /// History of unlocks for today (reset daily or kept for history)
-    /// For MVP, we might just keep a list.
     var unlockHistory: [UnlockSession]
     
-    static let empty = ManagedAppsConfig(manualSelection: [], unlockHistory: [])
+    static let empty = ManagedAppsConfig(selection: FamilyActivitySelection(), unlockHistory: [])
 }
 
 struct UnlockSession: Codable, Equatable, Identifiable {
@@ -18,4 +18,3 @@ struct UnlockSession: Codable, Equatable, Identifiable {
     let appName: String?
     let costInSteps: Int
 }
-

@@ -25,31 +25,32 @@ This roadmap sequences work into small, testable phases and emphasizes vertical 
 - Vertical slice:
   - ~~Build the Splash + one Explainer screen using actual tokens and base components.~~
 
-### Phase 3 – Data & Integration Foundations 🟡 PARTIAL
+### Phase 3 – Data & Integration Foundations ✅ COMPLETE
 
 - Implement:
   - ~~HealthKit service (`HealthDataProviding` implementation for steps).~~
-  - ❌ **Local storage layer (`StepCreditsStore`, `UserProfileStore`, `ManagedAppsStore`)** using a simple local persistence mechanism.
+  - ~~Local storage layer (`StepCreditsStore`, `UserProfileStore`, `ManagedAppsStore`) using a simple local persistence mechanism.~~
   - ~~`StepCreditsCalculator` with the initial 1,000 steps → 10 minutes mapping.~~
 - Vertical slice:
-  - ❌ **A simple internal-only screen or debug card showing:**
-    - ~~Today's steps from HealthKit (partially shown in HealthPermissionView but not standalone).~~
-    - ~~Computed credits in minutes (partially shown in HealthPermissionView but not standalone).~~
+  - 🟡 **A simple internal-only screen or debug card showing:**
+    - ~~Today's steps from HealthKit (shown in HealthPermissionView).~~
+    - ~~Computed credits in minutes (shown in HealthPermissionView).~~
 
-### Phase 4 – Onboarding Flow (End-to-End Without All Polish) 🟡 PARTIAL
+### Phase 4 – Onboarding Flow (Simplified MVP) ✅ COMPLETE
 
 - Build:
   - ~~Splash screen.~~
-  - ~~2–3 explainer screens.~~
+  - ~~Explainer screens ("Dopamine Trap", "Walk to Unlock").~~
   - ~~HealthKit permission prep and system dialog integration.~~
-  - ❌ **Optional notifications prep screen.**
-  - ❌ **App selection screen (manual list of candidate apps).**
-  - ❌ **Step-to-time education screen.**
-  - ❌ **Morning block schedule configuration UI (without deep Screen Time integration yet).**
+  - ~~Usage Estimation & Impact screens (New Scope).~~
+  - ~~Screen Time permission screen.~~
+  - ➖ **Optional notifications prep screen.** (Deferred)
+  - ➖ **App selection screen (manual list of candidate apps).** (Removed for simplified MVP)
+  - ➖ **Morning block schedule configuration UI.** (Removed for simplified MVP)
 - Connect:
-  - ❌ **Persist selected apps and morning schedule into local stores.**
+  - ➖ **Persist selected apps and morning schedule into local stores.** (Deferred)
 - Vertical slice:
-  - ❌ **First-time user can go from app install to Home with configuration saved.**
+  - ~~First-time user can go from app install to Home (Simplified flow).~~
 
 ### Phase 5 – Home Dashboard and Daily Loop ❌ NOT STARTED
 
@@ -99,21 +100,11 @@ This roadmap sequences work into small, testable phases and emphasizes vertical 
 
 ---
 
-## 🎯 Next Priority: Complete Phase 3 & 4
+## 🎯 Next Priority: Complete Phase 5
 
 **Immediate next steps:**
 
-1. **Phase 3 remaining work:**
-   - Implement local storage layer (`StepCreditsStore`, `UserProfileStore`, `ManagedAppsStore`)
-   - Create a debug/test screen showing today's steps and credits
-
-2. **Phase 4 remaining work:**
-   - Build notifications prep screen (optional)
-   - Build app selection screen
-   - Build step-to-time education screen
-   - Build morning block schedule configuration UI
-   - Implement persistence for selected apps and schedule
-
-3. **Then move to Phase 5:** Build the Home Dashboard
-
-
+1. **Phase 5: Home Dashboard**
+   - Build the main `HomeView` to replace the placeholder.
+   - Display real data from `HealthService` and `LocalStepCreditsStore`.
+   - Implement the "Credit" visualization.

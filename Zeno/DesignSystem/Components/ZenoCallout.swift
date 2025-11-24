@@ -21,7 +21,7 @@ struct ZenoCallout: View {
     var body: some View {
         HStack(alignment: .center, spacing: ZenoSemanticTokens.Space.md) {
             Image(systemName: icon)
-                .font(.system(size: 20))
+                .font(ZenoTokens.Typography.titleXSmall)
                 .foregroundColor(iconColor)
             
             Text(text)
@@ -34,7 +34,7 @@ struct ZenoCallout: View {
         .cornerRadius(ZenoSemanticTokens.Radius.md)
         .overlay(
             RoundedRectangle(cornerRadius: ZenoSemanticTokens.Radius.md)
-                .stroke(borderColor, lineWidth: 1)
+                .stroke(borderColor, lineWidth: ZenoSemanticTokens.Stroke.thin)
         )
     }
     
@@ -59,18 +59,18 @@ struct ZenoCallout: View {
     private var backgroundColor: Color {
         switch variant {
         case .info: return ZenoSemanticTokens.Theme.card
-        case .success: return ZenoTokens.ColorBase.Acid._900.opacity(0.3)
-        case .warning: return ZenoTokens.ColorBase.Ember._900.opacity(0.5)
-        case .error: return ZenoSemanticTokens.Theme.destructive.opacity(0.2)
+        case .success: return ZenoTokens.ColorBase.Acid._900.opacity(ZenoTokens.OpacityLevel._25)
+        case .warning: return ZenoTokens.ColorBase.Ember._900.opacity(ZenoTokens.OpacityLevel._50)
+        case .error: return ZenoSemanticTokens.Theme.destructive.opacity(ZenoTokens.OpacityLevel._25)
         }
     }
     
     private var borderColor: Color {
         switch variant {
         case .info: return ZenoSemanticTokens.Theme.border
-        case .success: return ZenoTokens.ColorBase.Acid._700.opacity(0.5)
-        case .warning: return ZenoTokens.ColorBase.Ember._700.opacity(0.5)
-        case .error: return ZenoSemanticTokens.Theme.destructive.opacity(0.5)
+        case .success: return ZenoTokens.ColorBase.Acid._700.opacity(ZenoTokens.OpacityLevel._50)
+        case .warning: return ZenoTokens.ColorBase.Ember._700.opacity(ZenoTokens.OpacityLevel._50)
+        case .error: return ZenoSemanticTokens.Theme.destructive.opacity(ZenoTokens.OpacityLevel._50)
         }
     }
 }

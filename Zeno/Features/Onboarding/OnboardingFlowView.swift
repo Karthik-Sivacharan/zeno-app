@@ -52,13 +52,18 @@ struct OnboardingFlowView: View {
             
             case 5:
                 ScreenTimePermissionView(
-                    onNext: advanceStep // Temporary bypass to Home for testing
+                    onNext: advanceStep
                 )
                 .transition(transitionFor(step: 5))
                 
-            // Temporary bypass - skipping the rest until we build the Family Picker UI
             case 6:
-                 // Placeholder for App Selection / Picker
+                AppPickerView(
+                    onNext: advanceStep
+                )
+                .transition(transitionFor(step: 6))
+                
+            case 7:
+                // Final step - transition to Home
                 Color.clear.onAppear {
                      withAnimation(ZenoSemanticTokens.Motion.Ease.mechanical) {
                         hasCompletedOnboarding = true
