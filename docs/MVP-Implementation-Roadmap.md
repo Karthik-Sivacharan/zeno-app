@@ -44,11 +44,11 @@ This roadmap sequences work into small, testable phases and emphasizes vertical 
   - ~~HealthKit permission prep and system dialog integration.~~
   - ~~Usage Estimation & Impact screens (New Scope).~~
   - ~~Screen Time permission screen.~~
+  - ~~App Selection using Family Activity Picker.~~
   - ➖ **Optional notifications prep screen.** (Deferred)
-  - ➖ **App selection screen (manual list of candidate apps).** (Removed for simplified MVP)
   - ➖ **Morning block schedule configuration UI.** (Removed for simplified MVP)
 - Connect:
-  - ➖ **Persist selected apps and morning schedule into local stores.** (Deferred)
+  - ~~Persist selected apps into local stores.~~
 - Vertical slice:
   - ~~First-time user can go from app install to Home (Simplified flow).~~
 
@@ -56,7 +56,7 @@ This roadmap sequences work into small, testable phases and emphasizes vertical 
 
 - Build Home screen:
   - ❌ **Show today's step count and credits.**
-  - ❌ **Show managed apps and remaining minutes per app (basic calculation).**
+  - ❌ **Show managed apps count (simple state for MVP).**
   - ❌ **Show morning no-scroll window status.**
   - ❌ **Provide clear empty/edge states (no permission, no steps, no apps).**
 - Behavior:
@@ -82,21 +82,16 @@ This roadmap sequences work into small, testable phases and emphasizes vertical 
 ### Phase 7 – Polish, Feedback, and Personal Testing ❌ NOT STARTED
 
 - Refine:
-  - ❌ **Microcopy and messaging, especially around:**
-    - ❌ **"Time's up."**
-    - ❌ **Permission denial.**
-    - ❌ **Morning no-scroll window.**
-  - ~~Visual design alignment once brand tokens are defined (tokens are defined).~~
+  - ❌ **Microcopy and messaging.**
+  - ❌ **Visual design alignment.**
 - Personal test:
   - ❌ **Run Zeno on your own device for multiple days.**
-  - ❌ **Track:**
-    - ❌ **How often you walk before scrolling.**
-    - ❌ **Whether credits feel too generous or too strict.**
-- Plan:
-  - ❌ **Capture insights and decide changes to:**
-    - ❌ **Step-to-time mapping.**
-    - ❌ **Default morning schedule.**
-    - ❌ **UX around overrides.**
+
+### Post-MVP / Future Improvements 🔮
+
+- **Enhanced App Reporting:**
+  - Implement `DeviceActivityReportExtension` to show app names, icons, and usage stats in the Block List.
+  - Match Opal's level of detail for selected apps.
 
 ---
 
