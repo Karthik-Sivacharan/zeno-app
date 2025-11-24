@@ -5,7 +5,7 @@ import Observation
 @Observable
 class HealthPermissionViewModel {
     
-    enum PermissionState {
+    enum PermissionState: Equatable {
         case idle
         case requesting
         case authorized

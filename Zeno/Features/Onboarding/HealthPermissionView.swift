@@ -7,24 +7,16 @@ struct HealthPermissionView: View {
     var body: some View {
         ZStack {
             // Background
-            ZenoSemanticTokens.Theme.background
-                .ignoresSafeArea()
+            ZenoSemanticTokens.Theme.background.ignoresSafeArea()
             
             // Atmosphere
             GeometryReader { proxy in
                 ZenoSemanticTokens.Gradients.swampBody
                     .overlay(
-                        ZenoSemanticTokens.Gradients.deepVoid
-                            .opacity(0.8)
+                        ZenoSemanticTokens.Gradients.deepVoid.opacity(0.8)
                     )
                     .frame(height: proxy.size.height * 0.6)
-                    .mask(
-                        LinearGradient(
-                            colors: [.black, .black, .clear],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
+                    .mask(LinearGradient(colors: [.black, .black, .clear], startPoint: .top, endPoint: .bottom))
             }
             .ignoresSafeArea()
             
@@ -35,6 +27,14 @@ struct HealthPermissionView: View {
                 Spacer()
                 
                 VStack(alignment: .leading, spacing: ZenoSemanticTokens.Space.md) {
+                    
+                    // Education Visual (Shown when Idle)
+                    if case .idle = viewModel.state {
+                        educationVisual
+                            .padding(.bottom, ZenoSemanticTokens.Space.lg)
+                            .transition(.opacity.combined(with: .move(edge: .top)))
+                    }
+                    
                     titleView
                     descriptionView
                 }
@@ -43,6 +43,41 @@ struct HealthPermissionView: View {
                 .padding(.bottom, ZenoSemanticTokens.Space.xl)
                 
                 ctaButton
+            }
+        }
+    }
+    
+    // MARK: - Views
+    
+    @ViewBuilder
+    private var educationVisual: some View {
+        VStack(alignment: .leading, spacing: ZenoSemanticTokens.Space.md) {
+            Text("The Exchange Rate")
+                .font(ZenoTokens.Typography.labelLarge)
+                .foregroundColor(ZenoSemanticTokens.Theme.mutedForeground)
+                .textCase(.uppercase)
+            
+            HStack(alignment: .firstTextBaseline, spacing: ZenoSemanticTokens.Space.sm) {
+                Text("1,000")
+                    .font(ZenoTokens.Typography.displayMedium)
+                    .foregroundColor(ZenoSemanticTokens.Theme.foreground)
+                Text("steps")
+                    .font(ZenoTokens.Typography.bodyLarge)
+                    .foregroundColor(ZenoSemanticTokens.Theme.mutedForeground)
+            }
+            
+            Image(systemName: "arrow.down")
+                .font(.title2)
+                .foregroundColor(ZenoSemanticTokens.Theme.accentForeground)
+                .padding(.vertical, ZenoSemanticTokens.Space.xs)
+            
+            HStack(alignment: .firstTextBaseline, spacing: ZenoSemanticTokens.Space.sm) {
+                Text("10")
+                    .font(ZenoTokens.Typography.displayMedium)
+                    .foregroundColor(ZenoSemanticTokens.Theme.primary)
+                Text("minutes")
+                    .font(ZenoTokens.Typography.bodyLarge)
+                    .foregroundColor(ZenoSemanticTokens.Theme.primary)
             }
         }
     }
@@ -84,7 +119,7 @@ struct HealthPermissionView: View {
     private var titleText: String {
         switch viewModel.state {
         case .authorized:
-            return "Analysis Complete"
+            return "Baseline Established"
         default:
             return "Measure Your Steps"
         }
@@ -93,18 +128,18 @@ struct HealthPermissionView: View {
     private var descriptionText: String {
         switch viewModel.state {
         case .authorized:
-            return "You average \(viewModel.averageSteps) steps a day. That earns you \(viewModel.potentialCredits) minutes of screen time daily!"
+            return "Your average of \(viewModel.averageSteps) steps unlocks \(viewModel.potentialCredits) minutes of scrolling per day. To use more, you must walk more."
         case .error:
             return "We encountered an issue connecting to Health. Please ensure Zeno has permission in Settings."
         default:
-            return "Zeno uses your daily step count to unlock apps. Give access to see how many minutes you've already earned."
+            return "Zeno uses your daily step count to unlock apps. Give access to set your baseline."
         }
     }
     
     private var ctaText: String {
         switch viewModel.state {
         case .authorized:
-            return "Start Moving"
+            return "Continue"
         case .error:
             return "Open Settings"
         default:
@@ -121,8 +156,6 @@ struct HealthPermissionView: View {
         case .authorized:
             onNext()
         case .denied, .error:
-            // For MVP, just try again or move on? 
-            // Usually we'd open settings.
             if let url = URL(string: UIApplication.openSettingsURLString) {
                 UIApplication.shared.open(url)
             }
@@ -132,20 +165,6 @@ struct HealthPermissionView: View {
     }
 }
 
-extension HealthPermissionViewModel.PermissionState: Equatable {
-    static func == (lhs: HealthPermissionViewModel.PermissionState, rhs: HealthPermissionViewModel.PermissionState) -> Bool {
-        switch (lhs, rhs) {
-        case (.idle, .idle), (.requesting, .requesting), (.authorized, .authorized), (.denied, .denied):
-            return true
-        case (.error(let a), .error(let b)):
-            return a == b
-        default:
-            return false
-        }
-    }
-}
-
 #Preview {
     HealthPermissionView(onNext: {})
 }
-

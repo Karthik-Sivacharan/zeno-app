@@ -66,13 +66,13 @@ enum ZenoTokens {
         static var displayXSmall: Font { .custom("Syne-ExtraBold", size: Size.displayXSmall) }
 
         // MARK: Title
-        // Uses SpaceGrotesk-Regular
+        // Uses SpaceGrotesk-Medium (Updated from Regular)
         
-        static var titleLarge: Font { .custom("SpaceGrotesk-Regular", size: Size.titleLarge) }
-        static var titleMedium: Font { .custom("SpaceGrotesk-Regular", size: Size.titleMedium) }
-        static var titleSmall: Font { .custom("SpaceGrotesk-Regular", size: Size.titleSmall) }
-        static var titleXSmall: Font { .custom("SpaceGrotesk-Regular", size: Size.titleXSmall) }
-        static var titleXXSmall: Font { .custom("SpaceGrotesk-Regular", size: Size.titleXXSmall) }
+        static var titleLarge: Font { .custom("SpaceGrotesk-Medium", size: Size.titleLarge) }
+        static var titleMedium: Font { .custom("SpaceGrotesk-Medium", size: Size.titleMedium) }
+        static var titleSmall: Font { .custom("SpaceGrotesk-Medium", size: Size.titleSmall) }
+        static var titleXSmall: Font { .custom("SpaceGrotesk-Medium", size: Size.titleXSmall) }
+        static var titleXXSmall: Font { .custom("SpaceGrotesk-Medium", size: Size.titleXXSmall) }
 
         // MARK: Label
         // Uses SpaceGrotesk-Regular

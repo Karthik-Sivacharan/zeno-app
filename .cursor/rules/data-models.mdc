@@ -1,0 +1,122 @@
+---
+description: Documentation of the Zeno data models, storage architecture, and persistence strategy.
+globs: ["**/*.swift"]
+---
+
+# Zeno Data & Persistence Architecture
+
+## 1. Overview
+
+Zeno uses a **Repository Pattern** to separate data access from business logic.
+- **Protocols** define *what* operations are available.
+- **Implementations** define *how* data is stored (Local/UserDefaults for MVP, Cloud/SwiftData for future).
+- **Models** are pure Swift structs, decoupled from storage implementation details.
+
+## 2. Core Entities
+
+### A. Step Credits (The Economy)
+
+Tracks the daily inflow of steps and outflow of credits (minutes).
+
+**Model: `DailyStepLedger`**
+```swift
+struct DailyStepLedger: Codable, Equatable {
+    let date: Date                 // The day this ledger represents (normalized to midnight)
+    var stepsSynced: Int           // Total steps synced from HealthKit for this day
+    var creditsSpent: Int          // Total minutes spent unlocking apps today
+    
+    // Computed Properties
+    var creditsEarned: Int {
+        // Logic: (stepsSynced / ratio)
+        // e.g., 1000 steps = 10 mins
+        return stepsSynced / 100 * 1 // Simplified: 100 steps = 1 min
+    }
+    
+    var creditsAvailable: Int {
+        return max(0, creditsEarned - creditsSpent)
+    }
+}
+```
+
+**Store Protocol: `StepCreditsStoring`**
+```swift
+protocol StepCreditsStoring {
+    func loadLedger(for date: Date) -> DailyStepLedger
+    func saveLedger(_ ledger: DailyStepLedger)
+    func spendCredits(minutes: Int, on date: Date) throws
+    func updateSteps(count: Int, on date: Date)
+}
+```
+
+### B. User Profile (The User)
+
+Tracks user preferences, onboarding status, and baseline stats.
+
+**Model: `UserProfile`**
+```swift
+struct UserProfile: Codable, Equatable {
+    var hasCompletedOnboarding: Bool
+    var historicalWeeklyAverageSteps: Int  // Snapshot from onboarding
+    var notificationsEnabled: Bool
+    var selectedMorningBlockWindow: DateInterval? // e.g., 8:00 AM - 9:00 AM
+}
+```
+
+**Store Protocol: `UserProfileStoring`**
+```swift
+protocol UserProfileStoring {
+    var profile: UserProfile { get }
+    func updateProfile(_ transform: (inout UserProfile) -> Void)
+}
+```
+
+### C. Managed Apps (The Block List)
+
+Tracks which apps are blocked and the history of unlocks.
+
+**Model: `ManagedAppsConfig`**
+```swift
+struct ManagedAppsConfig: Codable, Equatable {
+    // We cannot store FamilyActivitySelection directly in Codable easily without custom encoding,
+    // so we might store opaque tokens or just rely on the FamilyControls API for the selection persistence
+    // and keep metadata here.
+    // For MVP, we might store a flag or a list of "Manual" app identifiers if using manual selection.
+    
+    var manualSelection: [String] // e.g. Bundle IDs or Names for display if manual
+    var unlockHistory: [UnlockSession]
+}
+
+struct UnlockSession: Codable, Equatable {
+    let id: UUID
+    let timestamp: Date
+    let durationMinutes: Int
+    let appName: String? // Optional, if we know it
+    let costInSteps: Int
+}
+```
+
+**Store Protocol: `ManagedAppsStoring`**
+```swift
+protocol ManagedAppsStoring {
+    func loadConfig() -> ManagedAppsConfig
+    func saveConfig(_ config: ManagedAppsConfig)
+    func logUnlock(duration: Int, cost: Int, appName: String?)
+}
+```
+
+## 3. Persistence Strategy (MVP)
+
+For the MVP, we will use `UserDefaults` JSON encoding for simplicity.
+
+- **Key**: `zeno.store.dailyLedger` (Stores the current day's ledger)
+- **Key**: `zeno.store.userProfile`
+- **Key**: `zeno.store.managedApps`
+
+*Note: In the future, `DailyStepLedger` might move to SwiftData or a file-based cache if we need to store history for graphs.*
+
+## 4. Migration to Backend
+
+When we introduce a backend:
+1. Create `RemoteStepCreditsStore` conforming to `StepCreditsStoring`.
+2. Swap the dependency injection in `AppDependencyContainer` (or App entry point).
+3. The ViewModels remain unchanged.

@@ -70,7 +70,8 @@ These models are pure Swift structs. They do not import SwiftUI or HealthKit dir
 4.  **Mutation**: ViewModel maps Domain Model to View State.
 5.  **Render**: View updates based on `@Published` properties.
 
-## 6. Backend Readiness
-- Currently, the app is **Local-First** (MVP).
-- Services implement protocols. In the future, we can swap `LocalStepStore` with `RemoteStepStore` without changing the Views or ViewModels.
-- Avoid tight coupling to `UserDefaults` or specific database libraries in the ViewModels. Use Repository pattern.
+## 7. Reusable Components
+- All reusable UI elements (cards, callouts, complex buttons) MUST be placed in `Core/DesignSystem/Components/`.
+- Do NOT define complex subviews inline if they are used more than once or have distinct logic.
+- Use `ZenoSemanticTokens` for all styling within components.
+- Naming convention: `Zeno[ComponentName].swift` (e.g., `ZenoButton`, `ZenoCallout`).
