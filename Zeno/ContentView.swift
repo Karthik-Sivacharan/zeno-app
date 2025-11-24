@@ -27,23 +27,8 @@ struct ContentView: View {
             } else {
                 Group {
                     if hasCompletedOnboarding {
-                        // Placeholder for HomeView
-                        VStack {
-                            Text("Home Screen")
-                                .font(ZenoTokens.Typography.displayMedium)
-                                .foregroundColor(ZenoSemanticTokens.Theme.foreground)
-                            
-                            Button("Reset Onboarding") {
-                                hasCompletedOnboarding = false
-                            }
-                            .padding()
-                            .background(ZenoSemanticTokens.Theme.secondary)
-                            .foregroundColor(ZenoSemanticTokens.Theme.secondaryForeground)
-                            .clipShape(RoundedRectangle(cornerRadius: ZenoSemanticTokens.Radius.md))
-                        }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .background(ZenoSemanticTokens.Theme.background)
-                        .transition(.opacity)
+                        HomeView()
+                            .transition(.opacity)
                     } else {
                         OnboardingFlowView(hasCompletedOnboarding: $hasCompletedOnboarding)
                             .transition(.opacity)
