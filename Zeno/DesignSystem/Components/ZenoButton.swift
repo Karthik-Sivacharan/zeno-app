@@ -3,6 +3,7 @@ import SwiftUI
 enum ZenoButtonVariant {
     case primary
     case secondary
+    case muted        // Subdued style for discouraged actions
     case ghost
 }
 
@@ -48,6 +49,9 @@ struct ZenoButton: View {
             return ZenoSemanticTokens.Theme.primary
         case .secondary:
             return ZenoSemanticTokens.Theme.secondary
+        case .muted:
+            // Clay._600 - warm, earthy terracotta that complements green
+            return ZenoTokens.ColorBase.Clay._600
         case .ghost:
             return .clear
         }
@@ -59,6 +63,9 @@ struct ZenoButton: View {
             return ZenoSemanticTokens.Theme.primaryForeground
         case .secondary:
             return ZenoSemanticTokens.Theme.secondaryForeground
+        case .muted:
+            // Light sand for good contrast on Clay background
+            return ZenoTokens.ColorBase.Sand._100
         case .ghost:
             return ZenoSemanticTokens.Theme.foreground
         }
@@ -67,9 +74,9 @@ struct ZenoButton: View {
     private var cornerRadius: CGFloat {
         switch variant {
         case .primary:
-            // "no border radius for the priamry cta"
+            // "no border radius for the primary cta"
             return ZenoSemanticTokens.Radius.none
-        case .secondary:
+        case .secondary, .muted:
             return ZenoSemanticTokens.Radius.md
         case .ghost:
             return ZenoSemanticTokens.Radius.none
@@ -81,6 +88,7 @@ struct ZenoButton: View {
     VStack(spacing: 20) {
         ZenoButton("Next", variant: .primary) {}
         ZenoButton("Skip", variant: .secondary) {}
+        ZenoButton("Unshield Apps", variant: .muted) {}
         ZenoButton("Cancel", variant: .ghost) {}
     }
     .padding()

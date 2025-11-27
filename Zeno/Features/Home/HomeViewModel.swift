@@ -2,36 +2,138 @@ import Foundation
 import Observation
 import FamilyControls
 
+/// Represents the available time durations for unblocking apps
+enum UnblockDuration: Int, CaseIterable, Identifiable {
+    case twoMinutes = 2
+    case fiveMinutes = 5
+    case tenMinutes = 10
+    case fifteenMinutes = 15
+    
+    var id: Int { rawValue }
+    
+    var displayText: String {
+        "\(rawValue) min"
+    }
+}
+
 @Observable
 class HomeViewModel {
+    // MARK: - Step & Credit Properties
     var steps: Int = 0
     var creditsEarned: Int = 0
     var creditsSpent: Int = 0
     var creditsAvailable: Int = 0
     var stepsAvailable: Int = 0
     
+    // MARK: - Blocking Properties
     var blockedAppsCount: Int = 0
     var blockedCategoriesCount: Int = 0
     var blockedWebDomainsCount: Int = 0
     
+    /// Whether apps are currently blocked (shield is active)
+    var isBlocking: Bool = false
+    
+    /// The selected duration for unblocking
+    var selectedDuration: UnblockDuration? = nil
+    
+    /// Whether an unblock operation is in progress
+    var isUnblocking: Bool = false
+    
+    // MARK: - Timer Properties
+    
+    /// Remaining time in the current unblock session (in seconds)
+    var remainingSeconds: Int = 0
+    
+    /// The initial duration of the current session (in seconds) - used for progress calculation
+    var initialSessionSeconds: Int = 0
+    
+    /// The timer that updates remaining time
+    private var countdownTimer: Timer?
+    
+    // MARK: - Error Handling
     var errorMessage: String? = nil
     
+    // MARK: - Dependencies
     private let healthService: HealthDataProviding
     private let stepStore: StepCreditsStoring
     private let appsStore: ManagedAppsStoring
+    private let blockingService: AppBlockingService
     
     // Hardcoded for display purposes as it is private in Ledger
     private let stepsPerMinute: Int = 100
     
+    // MARK: - Init
+    
     init(
         healthService: HealthDataProviding = HealthKitService(),
         stepStore: StepCreditsStoring = LocalStepCreditsStore(),
-        appsStore: ManagedAppsStoring = LocalManagedAppsStore()
+        appsStore: ManagedAppsStoring = LocalManagedAppsStore(),
+        blockingService: AppBlockingService = .shared
     ) {
         self.healthService = healthService
         self.stepStore = stepStore
         self.appsStore = appsStore
+        self.blockingService = blockingService
     }
+    
+    // MARK: - Computed Properties
+    
+    /// Whether the user can afford at least one unlock duration (used to show/hide duration chips)
+    var canAffordAnyDuration: Bool {
+        // Check if user can afford the minimum duration (2 min)
+        guard let minDuration = UnblockDuration.allCases.min(by: { $0.rawValue < $1.rawValue }) else {
+            return false
+        }
+        return creditsAvailable >= minDuration.rawValue
+    }
+    
+    /// Returns only the durations the user can afford (filters out unaffordable options)
+    var affordableDurations: [UnblockDuration] {
+        UnblockDuration.allCases.filter { creditsAvailable >= $0.rawValue }
+    }
+    
+    /// Returns the available durations and whether each is enabled based on credits
+    var availableDurations: [(duration: UnblockDuration, isEnabled: Bool)] {
+        UnblockDuration.allCases.map { duration in
+            (duration, creditsAvailable >= duration.rawValue)
+        }
+    }
+    
+    /// Whether the user can unblock apps (has a selection and enough credits)
+    var canUnblock: Bool {
+        guard let selected = selectedDuration else { return false }
+        return creditsAvailable >= selected.rawValue && hasAppsToBlock
+    }
+    
+    /// Whether there are any apps/categories selected to block
+    var hasAppsToBlock: Bool {
+        blockedAppsCount > 0 || blockedCategoriesCount > 0
+    }
+    
+    /// Whether there's an active unblock session with time remaining
+    var hasActiveUnblockSession: Bool {
+        !isBlocking && remainingSeconds > 0
+    }
+    
+    /// Formatted remaining time string (MM:SS)
+    var formattedRemainingTime: String {
+        let minutes = remainingSeconds / 60
+        let seconds = remainingSeconds % 60
+        return String(format: "%d:%02d", minutes, seconds)
+    }
+    
+    /// Remaining minutes (rounded up) for display
+    var remainingMinutes: Int {
+        Int(ceil(Double(remainingSeconds) / 60.0))
+    }
+    
+    /// Progress of the current session (0.0 to 1.0, where 1.0 is full/just started)
+    var sessionProgress: CGFloat {
+        guard initialSessionSeconds > 0 else { return 0 }
+        return CGFloat(remainingSeconds) / CGFloat(initialSessionSeconds)
+    }
+    
+    // MARK: - Public Methods
     
     func loadData() async {
         // 1. Load Apps Config (Always load this, independent of HealthKit)
@@ -40,6 +142,10 @@ class HomeViewModel {
             self.blockedAppsCount = config.selection.applicationTokens.count
             self.blockedCategoriesCount = config.selection.categoryTokens.count
             self.blockedWebDomainsCount = config.selection.webDomainTokens.count
+            self.isBlocking = blockingService.isBlocking
+            
+            // Sync timer state from blocking service
+            self.syncTimerState()
         }
         
         do {
@@ -74,5 +180,158 @@ class HomeViewModel {
                 self.stepsAvailable = ledger.creditsAvailable * stepsPerMinute
             }
         }
+    }
+    
+    /// Select or deselect a duration for unblocking
+    func selectDuration(_ duration: UnblockDuration) {
+        guard creditsAvailable >= duration.rawValue else { return }
+        
+        // Toggle: if already selected, deselect it
+        if selectedDuration == duration {
+            selectedDuration = nil
+        } else {
+            selectedDuration = duration
+        }
+    }
+    
+    /// Block all selected apps (apply shields)
+    /// If called during an active unblock session, refunds unused time
+    func blockApps() {
+        // Calculate refund before blocking
+        let refundMinutes = blockingService.remainingMinutes
+        
+        // Stop the timer
+        stopCountdownTimer()
+        
+        // Apply the block
+        blockingService.blockApps()
+        isBlocking = true
+        remainingSeconds = 0
+        initialSessionSeconds = 0
+        
+        // Refund unused credits if there was time remaining
+        if refundMinutes > 0 {
+            stepStore.refundCredits(minutes: refundMinutes)
+            
+            // Update credits display
+            let ledger = stepStore.loadLedger(for: Date())
+            creditsSpent = ledger.creditsSpent
+            creditsAvailable = ledger.creditsAvailable
+            stepsAvailable = ledger.creditsAvailable * stepsPerMinute
+        }
+        
+        // Clear selection so user must choose again
+        selectedDuration = nil
+    }
+    
+    /// Unblock apps for the selected duration
+    func unblockApps() async {
+        guard let duration = selectedDuration else { return }
+        guard creditsAvailable >= duration.rawValue else {
+            errorMessage = "Not enough credits to unblock for \(duration.rawValue) minutes"
+            return
+        }
+        
+        isUnblocking = true
+        
+        do {
+            // 1. Spend the credits
+            try stepStore.spendCredits(minutes: duration.rawValue)
+            
+            // 2. Log the unlock session
+            appsStore.logUnlock(duration: duration.rawValue, cost: duration.rawValue * stepsPerMinute, appName: nil)
+            
+            // 3. Remove shields
+            blockingService.unblockApps(for: duration.rawValue)
+            
+            await MainActor.run {
+                self.isBlocking = false
+                self.isUnblocking = false
+                self.selectedDuration = nil
+                
+                // Update credits display
+                let ledger = stepStore.loadLedger(for: Date())
+                self.creditsSpent = ledger.creditsSpent
+                self.creditsAvailable = ledger.creditsAvailable
+                self.stepsAvailable = ledger.creditsAvailable * stepsPerMinute
+                
+                // Start the countdown timer
+                self.startCountdownTimer(duration: duration.rawValue)
+            }
+            
+        } catch {
+            await MainActor.run {
+                self.isUnblocking = false
+                self.errorMessage = "Failed to unblock apps: \(error.localizedDescription)"
+            }
+        }
+    }
+    
+    // MARK: - Timer Methods
+    
+    /// Sync timer state from blocking service (e.g., on app launch or returning from background)
+    func syncTimerState() {
+        let remaining = blockingService.remainingUnblockTime
+        if remaining > 0 && !blockingService.isBlocking {
+            remainingSeconds = Int(remaining)
+            isBlocking = false
+            
+            // If we don't have initialSessionSeconds (app was restarted), use remaining as fallback
+            // This means progress won't be fully accurate but is better than nothing
+            if initialSessionSeconds == 0 {
+                initialSessionSeconds = remainingSeconds
+            }
+            
+            startCountdownTimer()
+        } else if remaining <= 0 && blockingService.isInUnblockSession {
+            // Timer expired while in background - trigger reblock
+            remainingSeconds = 0
+            initialSessionSeconds = 0
+            stopCountdownTimer()
+            blockingService.blockApps()
+            isBlocking = true
+        } else {
+            remainingSeconds = 0
+            initialSessionSeconds = 0
+            stopCountdownTimer()
+            isBlocking = blockingService.isBlocking
+        }
+    }
+    
+    /// Start the countdown timer for an unblock session
+    private func startCountdownTimer(duration: Int) {
+        let totalSeconds = duration * 60
+        initialSessionSeconds = totalSeconds
+        remainingSeconds = totalSeconds
+        startCountdownTimer()
+    }
+    
+    /// Start or resume the countdown timer
+    /// The timer recalculates from actual expiry time each tick (handles background correctly)
+    private func startCountdownTimer() {
+        stopCountdownTimer()
+        
+        countdownTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            
+            // Always recalculate from the actual expiry time
+            // This handles the case where app was backgrounded
+            let remaining = self.blockingService.remainingUnblockTime
+            self.remainingSeconds = Int(remaining)
+            
+            // When timer reaches 0, trigger reblock
+            if self.remainingSeconds <= 0 {
+                self.stopCountdownTimer()
+                self.remainingSeconds = 0
+                self.blockingService.blockApps()
+                self.isBlocking = true
+            }
+        }
+    }
+    
+    /// Stop the countdown timer
+    private func stopCountdownTimer() {
+        countdownTimer?.invalidate()
+        countdownTimer = nil
     }
 }
