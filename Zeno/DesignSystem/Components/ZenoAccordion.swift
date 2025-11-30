@@ -5,11 +5,11 @@ import SwiftUI
 ///
 /// Usage:
 /// ```
-/// ZenoAccordion(title: "Details", icon: "info.circle") {
+/// Accordion(title: "Details", icon: "info.circle") {
 ///     Text("Hidden content goes here")
 /// }
 /// ```
-struct ZenoAccordion<Content: View>: View {
+struct Accordion<Content: View>: View {
     let title: String
     let icon: String?
     @Binding var isExpanded: Bool
@@ -86,7 +86,7 @@ struct ZenoAccordion<Content: View>: View {
 }
 
 /// Convenience initializer with internal state management
-extension ZenoAccordion {
+extension Accordion {
     /// Creates an accordion that manages its own expansion state
     /// - Parameters:
     ///   - title: The header title
@@ -107,7 +107,7 @@ extension ZenoAccordion {
 }
 
 /// A self-contained accordion that manages its own state
-struct ZenoAccordionStateful<Content: View>: View {
+struct AccordionStateful<Content: View>: View {
     let title: String
     let icon: String?
     let initiallyExpanded: Bool
@@ -129,7 +129,7 @@ struct ZenoAccordionStateful<Content: View>: View {
     }
     
     var body: some View {
-        ZenoAccordion(
+        Accordion(
             title: title,
             icon: icon,
             isExpanded: $isExpanded
@@ -142,7 +142,7 @@ struct ZenoAccordionStateful<Content: View>: View {
 #Preview {
     ScrollView {
         VStack(spacing: ZenoSemanticTokens.Space.md) {
-            ZenoAccordionStateful(title: "Debug Info", icon: "ladybug", initiallyExpanded: true) {
+            AccordionStateful(title: "Debug Info", icon: "ladybug", initiallyExpanded: true) {
                 VStack(alignment: .leading, spacing: ZenoSemanticTokens.Space.sm) {
                     Text("Steps Walked: 3,000")
                     Text("Credits Earned: 30")
@@ -152,7 +152,7 @@ struct ZenoAccordionStateful<Content: View>: View {
                 .foregroundColor(ZenoSemanticTokens.Theme.secondaryForeground)
             }
             
-            ZenoAccordionStateful(title: "Blocked Apps", icon: "app.badge") {
+            AccordionStateful(title: "Blocked Apps", icon: "app.badge") {
                 VStack(alignment: .leading, spacing: ZenoSemanticTokens.Space.sm) {
                     Text("Blocked Apps: 5")
                     Text("Blocked Categories: 3")
@@ -161,7 +161,7 @@ struct ZenoAccordionStateful<Content: View>: View {
                 .foregroundColor(ZenoSemanticTokens.Theme.secondaryForeground)
             }
             
-            ZenoAccordionStateful(title: "Settings") {
+            AccordionStateful(title: "Settings") {
                 Text("Settings content here")
                     .font(ZenoTokens.Typography.bodyMedium)
                     .foregroundColor(ZenoSemanticTokens.Theme.secondaryForeground)

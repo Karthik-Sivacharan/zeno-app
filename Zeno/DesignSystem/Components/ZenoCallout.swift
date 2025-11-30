@@ -1,18 +1,18 @@
 import SwiftUI
 
-enum ZenoCalloutVariant {
+enum CalloutVariant {
     case info
     case success
     case warning
     case error
 }
 
-struct ZenoCallout: View {
+struct Callout: View {
     let icon: String
     let text: String
-    let variant: ZenoCalloutVariant
+    let variant: CalloutVariant
     
-    init(icon: String, text: String, variant: ZenoCalloutVariant = .info) {
+    init(icon: String, text: String, variant: CalloutVariant = .info) {
         self.icon = icon
         self.text = text
         self.variant = variant
@@ -29,11 +29,12 @@ struct ZenoCallout: View {
                 .foregroundColor(textColor)
                 .fixedSize(horizontal: false, vertical: true)
         }
+        .frame(maxWidth: .infinity)
         .padding(ZenoSemanticTokens.Space.md)
         .background(backgroundColor)
-        .cornerRadius(ZenoSemanticTokens.Radius.md)
+        .cornerRadius(ZenoSemanticTokens.Radius.none)
         .overlay(
-            RoundedRectangle(cornerRadius: ZenoSemanticTokens.Radius.md)
+            RoundedRectangle(cornerRadius: ZenoSemanticTokens.Radius.none)
                 .stroke(borderColor, lineWidth: ZenoSemanticTokens.Stroke.thin)
         )
     }
@@ -77,10 +78,10 @@ struct ZenoCallout: View {
 
 #Preview {
     VStack {
-        ZenoCallout(icon: "info.circle", text: "This is an info callout.", variant: .info)
-        ZenoCallout(icon: "checkmark.circle.fill", text: "Action successful.", variant: .success)
-        ZenoCallout(icon: "exclamationmark.triangle", text: "Warning: This action is permanent.", variant: .warning)
-        ZenoCallout(icon: "xmark.octagon", text: "Error: Connection failed.", variant: .error)
+        Callout(icon: "info.circle", text: "This is an info callout.", variant: .info)
+        Callout(icon: "checkmark.circle.fill", text: "Action successful.", variant: .success)
+        Callout(icon: "exclamationmark.triangle", text: "Warning: This action is permanent.", variant: .warning)
+        Callout(icon: "xmark.octagon", text: "Error: Connection failed.", variant: .error)
     }
     .padding()
     .background(ZenoSemanticTokens.Theme.background)

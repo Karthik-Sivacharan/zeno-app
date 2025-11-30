@@ -34,7 +34,7 @@ struct ExplainerView: View {
             .ignoresSafeArea()
 
             // Noise Texture
-            ZenoNoiseView(opacity: ZenoSemanticTokens.TextureIntensity.subtle)
+            NoiseView(opacity: ZenoSemanticTokens.TextureIntensity.subtle)
             
             // 2. Content
             VStack(spacing: 0) {
@@ -56,7 +56,7 @@ struct ExplainerView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 
                 // 3. CTA
-                ZenoButton("Next", variant: .primary, action: onNext)
+                ActionButton("Next", variant: .primary, action: onNext)
                     // No horizontal padding for full width if desired, 
                     // but usually "No border radius" implies it might span full width or sit at bottom.
                     // The user said "CTA (no border radius for the priamry cta) will only be next".

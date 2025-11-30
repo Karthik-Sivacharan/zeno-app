@@ -20,7 +20,7 @@ struct HealthPermissionView: View {
             }
             .ignoresSafeArea()
             
-            ZenoNoiseView(opacity: ZenoSemanticTokens.TextureIntensity.subtle)
+            NoiseView(opacity: ZenoSemanticTokens.TextureIntensity.subtle)
             
             // Content
             VStack(spacing: 0) {
@@ -102,7 +102,7 @@ struct HealthPermissionView: View {
     
     @ViewBuilder
     private var ctaButton: some View {
-        ZenoButton(ctaText, variant: .primary, isLoading: isLoading) {
+        ActionButton(ctaText, variant: .primary, isLoading: isLoading) {
             handleAction()
         }
         .padding(.horizontal, ZenoSemanticTokens.Space.lg)

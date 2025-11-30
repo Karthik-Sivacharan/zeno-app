@@ -15,7 +15,7 @@ struct UsageEstimateView: View {
     var body: some View {
         ZStack {
             ZenoSemanticTokens.Theme.background.ignoresSafeArea()
-            ZenoNoiseView(opacity: ZenoSemanticTokens.TextureIntensity.subtle)
+            NoiseView(opacity: ZenoSemanticTokens.TextureIntensity.subtle)
             
             VStack(spacing: ZenoSemanticTokens.Space.lg) {
                 // Question
@@ -68,7 +68,7 @@ struct UsageImpactView: View {
     var body: some View {
         ZStack {
             ZenoSemanticTokens.Theme.background.ignoresSafeArea()
-            ZenoNoiseView(opacity: ZenoSemanticTokens.TextureIntensity.standard) // Heavier noise for impact
+            NoiseView(opacity: ZenoSemanticTokens.TextureIntensity.standard) // Heavier noise for impact
             
             VStack(spacing: 0) {
                 Spacer()
@@ -92,7 +92,7 @@ struct UsageImpactView: View {
                         .foregroundColor(ZenoSemanticTokens.Theme.mutedForeground)
                         .fixedSize(horizontal: false, vertical: true)
                     
-                    ZenoCallout(
+                    Callout(
                         icon: "clock.arrow.circlepath",
                         text: "Time is the only resource you can never get back.",
                         variant: .info
@@ -105,7 +105,7 @@ struct UsageImpactView: View {
                 
                 // No spacer here to keep it bottom-heavy
                 
-                ZenoButton("Confront It", variant: .primary, action: onNext)
+                ActionButton("Confront It", variant: .primary, action: onNext)
                     .padding(.horizontal, ZenoSemanticTokens.Space.lg)
                     .padding(.bottom, ZenoSemanticTokens.Space.lg)
             }

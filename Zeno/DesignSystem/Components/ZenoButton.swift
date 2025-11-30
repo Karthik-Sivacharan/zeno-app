@@ -1,20 +1,22 @@
 import SwiftUI
 
-enum ZenoButtonVariant {
+enum ButtonVariant {
     case primary
     case secondary
     case muted        // Subdued style for discouraged actions
     case ghost
 }
 
-struct ZenoButton: View {
+struct ActionButton: View {
     let title: String
-    let variant: ZenoButtonVariant
+    let icon: String?
+    let variant: ButtonVariant
     let isLoading: Bool
     let action: () -> Void
     
-    init(_ title: String, variant: ZenoButtonVariant = .primary, isLoading: Bool = false, action: @escaping () -> Void) {
+    init(_ title: String, icon: String? = nil, variant: ButtonVariant = .primary, isLoading: Bool = false, action: @escaping () -> Void) {
         self.title = title
+        self.icon = icon
         self.variant = variant
         self.isLoading = isLoading
         self.action = action
@@ -22,22 +24,28 @@ struct ZenoButton: View {
     
     var body: some View {
         Button(action: action) {
-            Text(title)
-                .opacity(isLoading ? 0 : 1)
-                .overlay(
-                    Group {
-                        if isLoading {
-                            ProgressView()
-                                .tint(textColor)
-                        }
+            HStack(spacing: ZenoSemanticTokens.Space.sm) {
+                if let icon = icon {
+                    Image(systemName: icon)
+                        .font(ZenoTokens.Typography.labelLarge)
+                }
+                Text(title)
+            }
+            .opacity(isLoading ? 0 : 1)
+            .overlay(
+                Group {
+                    if isLoading {
+                        ProgressView()
+                            .tint(textColor)
                     }
-                )
-                .font(ZenoTokens.Typography.labelLarge)
-                .foregroundColor(textColor)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, ZenoSemanticTokens.Space.lg)
-                .background(backgroundColor)
-                .cornerRadius(cornerRadius)
+                }
+            )
+            .font(ZenoTokens.Typography.labelLarge)
+            .foregroundColor(textColor)
+            .frame(maxWidth: .infinity)
+            .frame(height: ZenoSemanticTokens.Size.buttonHeight)
+            .background(backgroundColor)
+            .cornerRadius(cornerRadius)
         }
         .disabled(isLoading)
         .buttonStyle(.plain)
@@ -72,24 +80,17 @@ struct ZenoButton: View {
     }
     
     private var cornerRadius: CGFloat {
-        switch variant {
-        case .primary:
-            // "no border radius for the primary cta"
-            return ZenoSemanticTokens.Radius.none
-        case .secondary, .muted:
-            return ZenoSemanticTokens.Radius.md
-        case .ghost:
-            return ZenoSemanticTokens.Radius.none
-        }
+        // All buttons use square corners (no radius)
+        ZenoSemanticTokens.Radius.none
     }
 }
 
 #Preview {
     VStack(spacing: 20) {
-        ZenoButton("Next", variant: .primary) {}
-        ZenoButton("Skip", variant: .secondary) {}
-        ZenoButton("Unshield Apps", variant: .muted) {}
-        ZenoButton("Cancel", variant: .ghost) {}
+        ActionButton("Next", variant: .primary) {}
+        ActionButton("Skip", variant: .secondary) {}
+        ActionButton("Unshield Apps", variant: .muted) {}
+        ActionButton("Cancel", variant: .ghost) {}
     }
     .padding()
     .background(ZenoSemanticTokens.Theme.background)

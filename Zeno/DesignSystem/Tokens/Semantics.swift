@@ -209,6 +209,19 @@ enum ZenoSemanticTokens {
         static let muted: Double = ZenoTokens.OpacityLevel._60
         static let overlay: Double = ZenoTokens.OpacityLevel._50
         static let full: Double = ZenoTokens.OpacityLevel._100
+        /// Subtle background tint (pills, badges)
+        static let pillBackground: Double = ZenoTokens.OpacityLevel._10 + 0.05  // 0.15
+    }
+    
+    // MARK: - Semantic Sizes
+    
+    enum Size {
+        /// Progress bar track height
+        static let progressBarHeight: CGFloat = ZenoTokens.SpacingScale._2  // 8pt
+        /// Status indicator dot
+        static let statusDot: CGFloat = ZenoTokens.SpacingScale._2  // 8pt
+        /// Standard button height (large CTA)
+        static let buttonHeight: CGFloat = ZenoTokens.SpacingScale._14  // 56pt
     }
     
     // MARK: - Motion Tokens (The Physics)

@@ -5,7 +5,7 @@ import SwiftUI
 /// A shimmering gradient effect that sweeps across content.
 /// Use for active states, loading indicators, or to draw attention.
 /// Works by animating a gradient mask over the content.
-struct ZenoShimmerModifier: ViewModifier {
+struct ShimmerModifier: ViewModifier {
     let isActive: Bool
     let duration: Double
     
@@ -56,7 +56,7 @@ struct ZenoShimmerModifier: ViewModifier {
 
 /// A subtle scale pulse effect for "alive" indicators.
 /// Use for status dots, active states, or breathing effects.
-struct ZenoPulseModifier: ViewModifier {
+struct PulseModifier: ViewModifier {
     let isActive: Bool
     let minScale: CGFloat
     let maxScale: CGFloat
@@ -84,7 +84,7 @@ struct ZenoPulseModifier: ViewModifier {
 
 /// A simple opacity fade-in animation.
 /// Use for content appearing on screen.
-struct ZenoFadeInModifier: ViewModifier {
+struct FadeInModifier: ViewModifier {
     let isVisible: Bool
     let duration: Double
     
@@ -99,7 +99,7 @@ struct ZenoFadeInModifier: ViewModifier {
 
 /// A combined scale + opacity entrance animation.
 /// Use for modals, cards, or emphasis moments.
-struct ZenoScaleInModifier: ViewModifier {
+struct ScaleInModifier: ViewModifier {
     let isVisible: Bool
     let initialScale: CGFloat
     
@@ -115,11 +115,11 @@ struct ZenoScaleInModifier: ViewModifier {
 
 /// A subtle glow/shadow effect using the primary color.
 /// Use for active/highlighted elements.
-struct ZenoGlowModifier: ViewModifier {
+struct GlowModifier: ViewModifier {
     let isActive: Bool
-    let intensity: ZenoGlowIntensity
+    let intensity: GlowIntensity
     
-    enum ZenoGlowIntensity {
+    enum GlowIntensity {
         case low
         case high
         
@@ -148,8 +148,8 @@ extension View {
     /// - Parameters:
     ///   - isActive: Whether the shimmer is animating
     ///   - duration: How long one shimmer cycle takes (default: 2s)
-    func zenoShimmer(isActive: Bool = true, duration: Double = 2.0) -> some View {
-        modifier(ZenoShimmerModifier(isActive: isActive, duration: duration))
+    func shimmer(isActive: Bool = true, duration: Double = ZenoSemanticTokens.Motion.Duration.breathe) -> some View {
+        modifier(ShimmerModifier(isActive: isActive, duration: duration))
     }
     
     /// Adds a subtle breathing pulse effect.
@@ -157,32 +157,32 @@ extension View {
     ///   - isActive: Whether the pulse is animating
     ///   - minScale: Minimum scale (default: 0.95)
     ///   - maxScale: Maximum scale (default: 1.05)
-    func zenoPulse(isActive: Bool = true, minScale: CGFloat = 0.95, maxScale: CGFloat = 1.05) -> some View {
-        modifier(ZenoPulseModifier(isActive: isActive, minScale: minScale, maxScale: maxScale))
+    func pulse(isActive: Bool = true, minScale: CGFloat = 0.95, maxScale: CGFloat = 1.05) -> some View {
+        modifier(PulseModifier(isActive: isActive, minScale: minScale, maxScale: maxScale))
     }
     
     /// Adds a fade-in entrance animation.
     /// - Parameters:
     ///   - isVisible: Whether the content is visible
     ///   - duration: Animation duration (default: fast)
-    func zenoFadeIn(isVisible: Bool = true, duration: Double = ZenoSemanticTokens.Motion.Duration.fast) -> some View {
-        modifier(ZenoFadeInModifier(isVisible: isVisible, duration: duration))
+    func fadeIn(isVisible: Bool = true, duration: Double = ZenoSemanticTokens.Motion.Duration.fast) -> some View {
+        modifier(FadeInModifier(isVisible: isVisible, duration: duration))
     }
     
     /// Adds a scale + fade entrance animation.
     /// - Parameters:
     ///   - isVisible: Whether the content is visible
     ///   - initialScale: Starting scale before animating to 1.0 (default: 0.95)
-    func zenoScaleIn(isVisible: Bool = true, initialScale: CGFloat = 0.95) -> some View {
-        modifier(ZenoScaleInModifier(isVisible: isVisible, initialScale: initialScale))
+    func scaleIn(isVisible: Bool = true, initialScale: CGFloat = 0.95) -> some View {
+        modifier(ScaleInModifier(isVisible: isVisible, initialScale: initialScale))
     }
     
     /// Adds a glow/shadow effect using the primary color.
     /// - Parameters:
     ///   - isActive: Whether the glow is visible
     ///   - intensity: Glow intensity level (.low or .high)
-    func zenoGlow(isActive: Bool = true, intensity: ZenoGlowModifier.ZenoGlowIntensity = .low) -> some View {
-        modifier(ZenoGlowModifier(isActive: isActive, intensity: intensity))
+    func glow(isActive: Bool = true, intensity: GlowModifier.GlowIntensity = .low) -> some View {
+        modifier(GlowModifier(isActive: isActive, intensity: intensity))
     }
 }
 
@@ -202,7 +202,7 @@ extension View {
             }
             .font(ZenoTokens.Typography.labelMedium)
             .foregroundColor(ZenoSemanticTokens.Theme.primary)
-            .zenoShimmer()
+            .shimmer()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         
@@ -216,7 +216,7 @@ extension View {
                 Circle()
                     .fill(ZenoSemanticTokens.Theme.primary)
                     .frame(width: 12, height: 12)
-                    .zenoPulse()
+                    .pulse()
                 
                 Text("Active status")
                     .font(ZenoTokens.Typography.labelMedium)
@@ -234,11 +234,10 @@ extension View {
             RoundedRectangle(cornerRadius: ZenoSemanticTokens.Radius.md)
                 .fill(ZenoSemanticTokens.Theme.primary)
                 .frame(width: 120, height: 44)
-                .zenoGlow(intensity: .high)
+                .glow(intensity: .high)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
     .padding(ZenoSemanticTokens.Space.lg)
     .background(ZenoSemanticTokens.Theme.background)
 }
-

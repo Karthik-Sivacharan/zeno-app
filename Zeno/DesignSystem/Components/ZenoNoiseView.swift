@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct ZenoNoiseView: View {
+struct NoiseView: View {
     let opacity: Double
     
     // Generate the noise image once statically to avoid re-computation
@@ -74,7 +74,7 @@ extension UIImage {
 #Preview {
     ZStack {
         Color.black
-        ZenoNoiseView(opacity: 0.5)
+        NoiseView(opacity: 0.5)
     }
 }
 

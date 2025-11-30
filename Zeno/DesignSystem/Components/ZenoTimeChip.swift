@@ -7,7 +7,7 @@ import SwiftUI
 /// - **Default**: Subtle background with muted border
 /// - **Selected**: Primary accent with visible border
 /// - **Disabled**: Reduced opacity, non-interactive
-struct ZenoTimeChip: View {
+struct TimeChip: View {
     let minutes: Int
     let isSelected: Bool
     let isEnabled: Bool
@@ -72,10 +72,10 @@ struct ZenoTimeChip: View {
 
 #Preview {
     HStack(spacing: ZenoSemanticTokens.Space.sm) {
-        ZenoTimeChip(minutes: 2, isSelected: false, isEnabled: true) {}
-        ZenoTimeChip(minutes: 5, isSelected: true, isEnabled: true) {}
-        ZenoTimeChip(minutes: 10, isSelected: false, isEnabled: true) {}
-        ZenoTimeChip(minutes: 15, isSelected: false, isEnabled: false) {}
+        TimeChip(minutes: 2, isSelected: false, isEnabled: true) {}
+        TimeChip(minutes: 5, isSelected: true, isEnabled: true) {}
+        TimeChip(minutes: 10, isSelected: false, isEnabled: true) {}
+        TimeChip(minutes: 15, isSelected: false, isEnabled: false) {}
     }
     .padding()
     .background(ZenoSemanticTokens.Theme.background)

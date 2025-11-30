@@ -10,7 +10,7 @@ struct AppPickerView: View {
     var body: some View {
         ZStack {
             ZenoSemanticTokens.Theme.background.ignoresSafeArea()
-            ZenoNoiseView(opacity: ZenoSemanticTokens.TextureIntensity.subtle)
+            NoiseView(opacity: ZenoSemanticTokens.TextureIntensity.subtle)
             
             VStack(spacing: ZenoSemanticTokens.Space.lg) {
                 Spacer()
@@ -31,7 +31,7 @@ struct AppPickerView: View {
                 .padding(.horizontal, ZenoSemanticTokens.Space.lg)
                 
                 // Selection Row
-                ZenoSelectionRow(
+                SelectionRow(
                     icon: "apps.iphone",
                     title: "Blocked Apps",
                     subtitle: viewModel.selectedCount > 0 ? "\(viewModel.selectedCount) apps selected" : "Tap to select",
@@ -43,7 +43,7 @@ struct AppPickerView: View {
                 Spacer()
                 
                 // Footer
-                ZenoButton("Continue", variant: .primary, action: saveAndContinue)
+                ActionButton("Continue", variant: .primary, action: saveAndContinue)
                     .disabled(viewModel.selectedCount == 0)
                     .opacity(viewModel.selectedCount == 0 ? 0.5 : 1.0)
                     .padding(.horizontal, ZenoSemanticTokens.Space.lg)

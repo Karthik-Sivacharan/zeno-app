@@ -96,6 +96,13 @@ enum ZenoTokens {
         static var monoLarge: Font { .custom("SpaceMono-Medium", size: Size.monoLarge) }
         static var monoMedium: Font { .custom("SpaceMono-Medium", size: Size.monoMedium) }
         static var monoSmall: Font { .custom("SpaceMono-Medium", size: Size.monoSmall) }
+        
+        // MARK: Mono Display (For large numeric displays like steps)
+        // Uses SpaceMono-Bold for emphasis at display sizes
+        
+        static var monoDisplayXLarge: Font { .custom("SpaceMono-Bold", size: Size.displayMedium) } // 52pt
+        static var monoDisplayLarge: Font { .custom("SpaceMono-Bold", size: Size.displaySmall) }  // 44pt
+        static var monoDisplayMedium: Font { .custom("SpaceMono-Bold", size: Size.titleLarge) }   // 40pt
     }
 
     // MARK: - Primitive Scales (Spacing, Radius, etc.)

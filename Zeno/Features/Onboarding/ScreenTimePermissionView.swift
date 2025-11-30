@@ -21,7 +21,7 @@ struct ScreenTimePermissionView: View {
             }
             .ignoresSafeArea()
             
-            ZenoNoiseView(opacity: ZenoSemanticTokens.TextureIntensity.subtle)
+            NoiseView(opacity: ZenoSemanticTokens.TextureIntensity.subtle)
             
             // Content
             VStack(spacing: 0) {
@@ -41,7 +41,7 @@ struct ScreenTimePermissionView: View {
                         .fixedSize(horizontal: false, vertical: true)
                     
                     // Security Callout (Using Component)
-                    ZenoCallout(
+                    Callout(
                         icon: "lock.shield.fill",
                         text: "Your data stays on-device. Zeno cannot see your messages or content.",
                         variant: .info
@@ -53,7 +53,7 @@ struct ScreenTimePermissionView: View {
                 .padding(.bottom, ZenoSemanticTokens.Space.xl)
                 
                 // CTA
-                ZenoButton(ctaText, variant: .primary, isLoading: viewModel.isRequesting, action: handleAction)
+                ActionButton(ctaText, variant: .primary, isLoading: viewModel.isRequesting, action: handleAction)
                     .padding(.horizontal, ZenoSemanticTokens.Space.lg)
                     .padding(.bottom, ZenoSemanticTokens.Space.lg)
             }

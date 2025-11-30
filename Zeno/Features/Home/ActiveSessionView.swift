@@ -12,7 +12,7 @@ struct ActiveSessionView: View {
                 .ignoresSafeArea()
             
             // Noise texture: Standard intensity for atmosphere
-            ZenoNoiseView(opacity: ZenoSemanticTokens.TextureIntensity.standard)
+            NoiseView(opacity: ZenoSemanticTokens.TextureIntensity.standard)
             
             VStack(spacing: 0) {
                 // MARK: - Top Status Bar
@@ -41,21 +41,7 @@ struct ActiveSessionView: View {
     private var sessionHeader: some View {
         VStack(spacing: ZenoSemanticTokens.Space.sm) {
             // Status pill - Clay color indicates apps are exposed
-            HStack(spacing: ZenoSemanticTokens.Space.xs) {
-                Circle()
-                    .fill(unshieldedColor)
-                    .frame(width: 8, height: 8)
-                
-                Text("Unshielded")
-                    .font(ZenoTokens.Typography.labelMedium)
-                    .foregroundColor(unshieldedColor)
-            }
-            .padding(.horizontal, ZenoSemanticTokens.Space.md)
-            .padding(.vertical, ZenoSemanticTokens.Space.sm)
-            .background(
-                Capsule()
-                    .fill(unshieldedColor.opacity(0.15))
-            )
+            StatusPill(icon: "dot", text: "Unshielded", color: unshieldedColor)
         }
         .padding(.top, ZenoSemanticTokens.Space.xl)
     }
@@ -89,11 +75,11 @@ struct ActiveSessionView: View {
                         )
                     )
                     .rotationEffect(.degrees(-90))
-                    .animation(.easeInOut(duration: 0.3), value: viewModel.sessionProgress)
+                    .animation(.easeInOut(duration: ZenoSemanticTokens.Motion.Duration.fast), value: viewModel.sessionProgress)
                 
                 // Inner fill
                 Circle()
-                    .fill(ZenoSemanticTokens.Theme.card.opacity(0.5))
+                    .fill(ZenoSemanticTokens.Theme.card.opacity(ZenoSemanticTokens.Opacity.overlay))
                     .padding(ZenoSemanticTokens.Space.md)
                 
                 // Timer text (using title font for better accessibility)
@@ -102,16 +88,16 @@ struct ActiveSessionView: View {
                     .foregroundColor(ZenoSemanticTokens.Theme.primary)
                     .monospacedDigit()
                     .contentTransition(.numericText())
-                    .animation(.easeInOut(duration: 0.2), value: viewModel.remainingSeconds)
+                    .animation(.easeInOut(duration: ZenoSemanticTokens.Motion.Duration.snap), value: viewModel.remainingSeconds)
             }
-            .frame(width: 220, height: 220)
+            .frame(width: ZenoTokens.SpacingScale._56, height: ZenoTokens.SpacingScale._56)
         }
     }
     
     // MARK: - Bottom Actions
     
     private var bottomActions: some View {
-        ZenoButton("Re-shield Apps", variant: .primary) {
+        ActionButton("Re-shield Apps", variant: .primary) {
             viewModel.blockApps()
         }
     }

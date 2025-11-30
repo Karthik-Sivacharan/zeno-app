@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct ZenoSelectionRow: View {
+struct SelectionRow: View {
     let icon: String
     let title: String
     let subtitle: String?
@@ -46,7 +46,7 @@ struct ZenoSelectionRow: View {
 #Preview {
     ZStack {
         Color.black.ignoresSafeArea()
-        ZenoSelectionRow(
+        SelectionRow(
             icon: "apps.iphone",
             title: "Blocked Apps",
             subtitle: "5 apps selected",

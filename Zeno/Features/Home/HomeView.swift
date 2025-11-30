@@ -73,7 +73,7 @@ struct HomeView: View {
             VStack(spacing: ZenoSemanticTokens.Space.lg) {
                 // Error message (if any) - displayed as a friendly callout
                 if let error = viewModel.errorMessage {
-                    ZenoCallout(
+                    Callout(
                         icon: "exclamationmark.triangle",
                         text: error,
                         variant: .warning
@@ -107,7 +107,7 @@ struct HomeView: View {
                     .font(ZenoTokens.Typography.labelMedium)
             }
             .foregroundColor(ZenoSemanticTokens.Theme.primary)
-            .zenoShimmer(isActive: true, duration: 2.5)
+            .shimmer(isActive: true, duration: 2.5)
             .frame(maxWidth: .infinity)
             .padding(.vertical, ZenoSemanticTokens.Space.sm)
             .background(
@@ -133,27 +133,15 @@ struct HomeView: View {
             // No credits section - show when apps are shielded but user can't afford any duration
             if !viewModel.canAffordAnyDuration && viewModel.isBlocking {
                 VStack(spacing: ZenoSemanticTokens.Space.md) {
-                    ZenoCallout(
+                    Callout(
                         icon: "exclamationmark.triangle",
                         text: "Out of time. Walk to earn more minutes!",
                         variant: .warning
                     )
                     
                     // Walk Now CTA - bright green to encourage action
-                    Button {
+                    ActionButton("Walk Now", icon: "figure.walk", variant: .primary) {
                         isShowingWalkNow = true
-                    } label: {
-                        HStack(spacing: ZenoSemanticTokens.Space.sm) {
-                            Image(systemName: "figure.walk")
-                                .font(ZenoTokens.Typography.labelMedium)
-                            Text("Walk Now")
-                                .font(ZenoTokens.Typography.labelMedium)
-                        }
-                        .foregroundColor(ZenoSemanticTokens.Theme.primaryForeground)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, ZenoSemanticTokens.Space.md)
-                        .background(ZenoSemanticTokens.Theme.primary)
-                        .cornerRadius(ZenoSemanticTokens.Radius.lg)
                     }
                 }
             }
@@ -168,7 +156,7 @@ struct HomeView: View {
                     
                     HStack(spacing: ZenoSemanticTokens.Space.sm) {
                         ForEach(viewModel.availableDurations, id: \.duration.id) { item in
-                            ZenoTimeChip(
+                            TimeChip(
                                 minutes: item.duration.rawValue,
                                 isSelected: viewModel.selectedDuration == item.duration,
                                 isEnabled: item.isEnabled
@@ -183,7 +171,7 @@ struct HomeView: View {
             // Unshield button - only show when apps are shielded AND user can afford at least one duration
             // Hidden when user has 0 credits (Walk Now takes over)
             if viewModel.isBlocking && viewModel.canAffordAnyDuration {
-                ZenoButton("Unshield Apps", variant: .muted, isLoading: viewModel.isUnblocking) {
+                ActionButton("Unshield Apps", variant: .muted, isLoading: viewModel.isUnblocking) {
                     Task {
                         await viewModel.unblockApps()
                     }
@@ -228,7 +216,7 @@ struct HomeView: View {
     // MARK: - Debug Accordion
     
     private var debugAccordion: some View {
-        ZenoAccordion(
+        Accordion(
             title: "Debug Panel",
             icon: "ladybug",
             isExpanded: $isDebugExpanded

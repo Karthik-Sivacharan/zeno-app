@@ -8,7 +8,7 @@ struct SplashView: View {
                 .ignoresSafeArea()
             
             // Noise Texture: Heavy intensity to be clearly visible
-            ZenoNoiseView(opacity: ZenoSemanticTokens.TextureIntensity.heavy)
+            NoiseView(opacity: ZenoSemanticTokens.TextureIntensity.heavy)
             
             // Content
             VStack(spacing: ZenoSemanticTokens.Space.md) {
