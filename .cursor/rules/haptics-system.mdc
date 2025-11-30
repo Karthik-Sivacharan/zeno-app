@@ -1,0 +1,384 @@
+# Zeno Haptics System
+
+## Philosophy: Heavy, Deliberate, Never Frivolous
+
+Zeno's haptic language mirrors its visual motion: **mechanical, weighty, and purposeful**. Like an ancient lock clicking into place or a vault door settling, haptics should feel substantial—not playful or bouncy.
+
+> "The best haptic is the one you don't consciously notice, but would miss if it weren't there."
+
+---
+
+## 1. Core Principles
+
+### 1.1 Purposeful Use Only
+- ✅ DO: Use haptics to confirm meaningful actions (unshield, re-shield, session complete)
+- ✅ DO: Provide tactile boundaries (selection changes, thresholds crossed)
+- ❌ DON'T: Add haptics to every tap or scroll
+- ❌ DON'T: Use multiple haptics in quick succession (feels like a broken motor)
+
+### 1.2 Sync with Motion Tokens
+Haptics must fire at the **start** of an animation, not after. This creates a causal feeling:
+- Animation starts → Haptic fires → User feels connected to the action
+
+### 1.3 Intensity Hierarchy
+Match haptic weight to action significance:
+| Action Weight | Haptic Intensity | Example |
+|--------------|------------------|---------|
+| **Critical** | Heavy / Notification | Shield activated, session ended |
+| **Standard** | Medium / Rigid | Button press, selection confirm |
+| **Subtle** | Light / Soft | Chip selection, accordion toggle |
+
+### 1.4 Respect User Settings
+- Always check `UIImpactFeedbackGenerator` availability
+- Never assume haptics are available (older devices, settings disabled)
+- Provide a user toggle in Settings (future consideration)
+
+---
+
+## 2. Haptic Types (iOS 17+)
+
+### 2.1 SwiftUI `sensoryFeedback` Modifier (Preferred)
+Use the modern SwiftUI API for most cases:
+
+```swift
+.sensoryFeedback(.impact(weight: .medium), trigger: isSelected)
+.sensoryFeedback(.selection, trigger: selectedIndex)
+.sensoryFeedback(.success, trigger: actionCompleted)
+```
+
+### 2.2 UIKit Feedback Generators (For Custom Patterns)
+When you need more control, use the generators directly:
+
+```swift
+// Impact - for physical collisions / button presses
+UIImpactFeedbackGenerator(style: .light)   // Subtle taps
+UIImpactFeedbackGenerator(style: .medium)  // Standard actions
+UIImpactFeedbackGenerator(style: .heavy)   // Significant moments
+UIImpactFeedbackGenerator(style: .rigid)   // Mechanical, stiff (ZENO PREFERRED)
+UIImpactFeedbackGenerator(style: .soft)    // Cushioned landing
+
+// Notification - for semantic outcomes
+UINotificationFeedbackGenerator()
+  .notificationOccurred(.success)  // Green checkmark moment
+  .notificationOccurred(.warning)  // Amber caution
+  .notificationOccurred(.error)    // Red stop
+
+// Selection - for picker/segment changes
+UISelectionFeedbackGenerator()
+```
+
+---
+
+## 3. Zeno Semantic Haptic Tokens
+
+Create a centralized `ZenoHaptics` enum for consistent usage:
+
+```swift
+import SwiftUI
+
+/// Semantic haptic tokens for Zeno.
+/// Maps feedback types to meaningful app interactions.
+enum ZenoHaptics {
+    
+    // MARK: - Primary Actions (The Big Moments)
+    
+    /// Shield activated / Re-shield complete
+    /// Heavy, satisfying "lock engaged" feel
+    case shieldEngaged
+    
+    /// Unshield initiated - a releasing/unlocking feel
+    /// Slightly lighter than engage, but still substantial
+    case shieldDisengaged
+    
+    // MARK: - Selection & Navigation
+    
+    /// Time chip selection, app picker row tap
+    /// Quick, mechanical click
+    case selectionChanged
+    
+    /// Accordion expand/collapse
+    /// Subtle tick for state change
+    case toggleState
+    
+    // MARK: - Button Presses
+    
+    /// Primary CTA button tap (e.g., "Unshield Apps")
+    /// Medium impact for confirmation
+    case buttonPrimary
+    
+    /// Secondary/Ghost button tap
+    /// Light, unobtrusive
+    case buttonSecondary
+    
+    // MARK: - Session Events
+    
+    /// Session started (timer begins)
+    case sessionStart
+    
+    /// Session ending soon (final minute warning)
+    /// Distinct from other haptics — a "heads up"
+    case sessionWarning
+    
+    /// Session ended (time's up)
+    /// Clear finality
+    case sessionEnd
+    
+    // MARK: - Feedback States
+    
+    /// Action succeeded (permissions granted, save complete)
+    case success
+    
+    /// Action denied (not enough credits, error)
+    case error
+    
+    /// Low credits / approaching limit
+    case warning
+    
+    // MARK: - Execution
+    
+    func trigger() {
+        switch self {
+        case .shieldEngaged:
+            // Heavy rigid impact — mechanical lock
+            UIImpactFeedbackGenerator(style: .rigid).impactOccurred(intensity: 1.0)
+            
+        case .shieldDisengaged:
+            // Medium soft — releasing tension
+            UIImpactFeedbackGenerator(style: .soft).impactOccurred(intensity: 0.8)
+            
+        case .selectionChanged:
+            // Selection feedback — picker-like
+            UISelectionFeedbackGenerator().selectionChanged()
+            
+        case .toggleState:
+            // Light impact — minimal acknowledgment
+            UIImpactFeedbackGenerator(style: .light).impactOccurred(intensity: 0.5)
+            
+        case .buttonPrimary:
+            // Medium rigid — deliberate press
+            UIImpactFeedbackGenerator(style: .rigid).impactOccurred(intensity: 0.7)
+            
+        case .buttonSecondary:
+            // Light impact — subtle
+            UIImpactFeedbackGenerator(style: .light).impactOccurred(intensity: 0.4)
+            
+        case .sessionStart:
+            // Success notification — "you're in"
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+            
+        case .sessionWarning:
+            // Warning notification — attention needed
+            UINotificationFeedbackGenerator().notificationOccurred(.warning)
+            
+        case .sessionEnd:
+            // Heavy + notification combo for finality
+            UIImpactFeedbackGenerator(style: .heavy).impactOccurred(intensity: 1.0)
+            
+        case .success:
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+            
+        case .error:
+            UINotificationFeedbackGenerator().notificationOccurred(.error)
+            
+        case .warning:
+            UINotificationFeedbackGenerator().notificationOccurred(.warning)
+        }
+    }
+}
+```
+
+---
+
+## 4. Usage By Component
+
+### 4.1 ZenoButton
+```swift
+// In ZenoButton.swift
+Button(action: {
+    // Trigger haptic BEFORE calling the action
+    switch variant {
+    case .primary, .muted:
+        ZenoHaptics.buttonPrimary.trigger()
+    case .secondary, .ghost:
+        ZenoHaptics.buttonSecondary.trigger()
+    }
+    action()
+}) { ... }
+```
+
+### 4.2 ZenoTimeChip
+```swift
+// Selection change triggers selection haptic
+.sensoryFeedback(.selection, trigger: isSelected)
+// OR manually:
+Button(action: {
+    ZenoHaptics.selectionChanged.trigger()
+    action()
+}) { ... }
+```
+
+### 4.3 ZenoAccordion
+```swift
+Button {
+    ZenoHaptics.toggleState.trigger()
+    withAnimation(ZenoSemanticTokens.Motion.Ease.standard) {
+        isExpanded.toggle()
+    }
+} label: { ... }
+```
+
+### 4.4 Shield/Unshield Actions (HomeViewModel)
+```swift
+func blockApps() {
+    ZenoHaptics.shieldEngaged.trigger()
+    // ... blocking logic
+}
+
+func unblockApps() async {
+    ZenoHaptics.shieldDisengaged.trigger()
+    // ... unblocking logic
+}
+```
+
+### 4.5 Session Timer Events
+```swift
+// When session starts
+ZenoHaptics.sessionStart.trigger()
+
+// At 60 seconds remaining (final warning)
+if remainingSeconds == 60 {
+    ZenoHaptics.sessionWarning.trigger()
+}
+
+// When session ends
+ZenoHaptics.sessionEnd.trigger()
+```
+
+### 4.6 Onboarding Flow
+```swift
+// Permission granted successfully
+ZenoHaptics.success.trigger()
+
+// Permission denied
+ZenoHaptics.error.trigger()
+
+// App selection row tap (use selection, not button)
+ZenoHaptics.selectionChanged.trigger()
+```
+
+---
+
+## 5. Anti-Patterns (What NOT to Do)
+
+### ❌ Haptic Spam
+```swift
+// BAD: Multiple haptics in quick succession
+ForEach(items) { item in
+    Button { ZenoHaptics.selectionChanged.trigger() } // Every row fires!
+}
+```
+
+### ❌ Delayed Haptics
+```swift
+// BAD: Haptic fires after animation
+withAnimation { isExpanded.toggle() }
+DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+    ZenoHaptics.toggleState.trigger() // Too late!
+}
+```
+
+### ❌ Overusing Heavy Impacts
+```swift
+// BAD: Heavy impact for minor action
+Button("Cancel") {
+    UIImpactFeedbackGenerator(style: .heavy).impactOccurred() // Overkill
+}
+```
+
+### ❌ Ignoring Disabled States
+```swift
+// BAD: Haptic fires even when button is disabled
+Button(action: {
+    ZenoHaptics.buttonPrimary.trigger() // Fires even if disabled!
+    action()
+})
+.disabled(isDisabled)
+
+// GOOD: Check state first
+Button(action: {
+    guard !isDisabled else { return }
+    ZenoHaptics.buttonPrimary.trigger()
+    action()
+})
+```
+
+---
+
+## 6. Complete Use Case Matrix
+
+| Interaction | Haptic Token | Notes |
+|-------------|--------------|-------|
+| **Primary button tap** | `.buttonPrimary` | Medium rigid impact |
+| **Secondary/Ghost button tap** | `.buttonSecondary` | Light impact |
+| **Time chip selection** | `.selectionChanged` | Selection feedback |
+| **App row selection** | `.selectionChanged` | Selection feedback |
+| **Accordion toggle** | `.toggleState` | Light impact |
+| **Shield activated** | `.shieldEngaged` | Heavy rigid — satisfying |
+| **Shield deactivated** | `.shieldDisengaged` | Medium soft — release |
+| **Session timer starts** | `.sessionStart` | Success notification |
+| **1 minute warning** | `.sessionWarning` | Warning notification |
+| **Session ends** | `.sessionEnd` | Heavy impact — finality |
+| **Permission granted** | `.success` | Success notification |
+| **Permission denied** | `.error` | Error notification |
+| **Out of credits** | `.warning` | Warning notification |
+| **Onboarding page swipe** | None | No haptic (continuous gesture) |
+| **Scroll/pan gestures** | None | Never haptic on scroll |
+
+---
+
+## 7. Testing Checklist
+
+Before shipping haptic implementations:
+
+- [ ] **Physical device test** — Simulator doesn't have haptic hardware
+- [ ] **Silent mode** — Haptics should work even in silent mode
+- [ ] **Low Power Mode** — System may reduce haptic intensity
+- [ ] **Accessibility** — Ensure UI still works if haptics fail
+- [ ] **Rapid taps** — Ensure no "machine gun" effect
+- [ ] **Timing sync** — Haptic fires at animation start, not end
+
+---
+
+## 8. Future Considerations
+
+### 8.1 Core Haptics (Advanced Patterns)
+For signature moments (e.g., the Zeno coin flip), consider custom `CHHapticEngine` patterns:
+
+```swift
+// Example: Custom "coin flip" pattern (future implementation)
+let sharpness = CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.8)
+let intensity = CHHapticEventParameter(parameterID: .hapticIntensity, value: 1.0)
+// ... create event sequence for unique "ancient mechanism" feel
+```
+
+### 8.2 User Preferences
+Add a Settings toggle:
+```swift
+@AppStorage("hapticsEnabled") var hapticsEnabled = true
+
+// In ZenoHaptics.trigger():
+guard UserDefaults.standard.bool(forKey: "hapticsEnabled") else { return }
+```
+
+---
+
+## 9. Summary
+
+Zeno haptics are **mechanical, deliberate, and weighted**. They punctuate significant moments without cluttering the experience. When in doubt:
+
+1. **Less is more** — Only add haptics where they reinforce meaning
+2. **Match the motion** — Heavy actions get heavy haptics
+3. **Fire early** — Haptic at animation start, not end
+4. **Test on device** — Simulator lies
+
+> "Feel the weight of the vault door. Every shield engage should feel like something locked into place."

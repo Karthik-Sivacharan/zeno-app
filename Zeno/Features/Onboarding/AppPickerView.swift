@@ -54,6 +54,8 @@ struct AppPickerView: View {
     
     private func saveAndContinue() {
         viewModel.saveSelection()
+        // Auto-block apps immediately after saving selection
+        AppBlockingService.shared.blockApps()
         onNext()
     }
 }

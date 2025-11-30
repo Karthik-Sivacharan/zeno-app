@@ -6,6 +6,14 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		279BCF0F2ED7B12100FAB2C9 /* ManagedSettings.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 279BCF0E2ED7B12100FAB2C9 /* ManagedSettings.framework */; };
+		279BCF112ED7B12200FAB2C9 /* ManagedSettingsUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 279BCF102ED7B12200FAB2C9 /* ManagedSettingsUI.framework */; };
+		279BCF192ED7B12200FAB2C9 /* ZenoShieldExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 279BCF0C2ED7B12100FAB2C9 /* ZenoShieldExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		279BCFBC2ED7BF1600FAB2C9 /* DeviceActivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 279BCFBB2ED7BF1600FAB2C9 /* DeviceActivity.framework */; };
+		279BCFC42ED7BF1600FAB2C9 /* ZenoDeviceMonitor.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 279BCFBA2ED7BF1600FAB2C9 /* ZenoDeviceMonitor.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		279BC8D82ED157EA00FAB2C9 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -21,12 +29,46 @@
 			remoteGlobalIDString = 279BC8C92ED157E800FAB2C9;
 			remoteInfo = Zeno;
 		};
+		279BCF172ED7B12200FAB2C9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 279BC8C22ED157E800FAB2C9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 279BCF0B2ED7B12100FAB2C9;
+			remoteInfo = ZenoShieldExtension;
+		};
+		279BCFC22ED7BF1600FAB2C9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 279BC8C22ED157E800FAB2C9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 279BCFB92ED7BF1600FAB2C9;
+			remoteInfo = ZenoDeviceMonitor;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		279BCF1E2ED7B12200FAB2C9 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				279BCF192ED7B12200FAB2C9 /* ZenoShieldExtension.appex in Embed Foundation Extensions */,
+				279BCFC42ED7BF1600FAB2C9 /* ZenoDeviceMonitor.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		279BC8CA2ED157E800FAB2C9 /* Zeno.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Zeno.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		279BC8D72ED157EA00FAB2C9 /* ZenoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ZenoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		279BC8E12ED157EA00FAB2C9 /* ZenoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ZenoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		279BCF0C2ED7B12100FAB2C9 /* ZenoShieldExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ZenoShieldExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		279BCF0E2ED7B12100FAB2C9 /* ManagedSettings.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ManagedSettings.framework; path = System/Library/Frameworks/ManagedSettings.framework; sourceTree = SDKROOT; };
+		279BCF102ED7B12200FAB2C9 /* ManagedSettingsUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ManagedSettingsUI.framework; path = System/Library/Frameworks/ManagedSettingsUI.framework; sourceTree = SDKROOT; };
+		279BCFBA2ED7BF1600FAB2C9 /* ZenoDeviceMonitor.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ZenoDeviceMonitor.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		279BCFBB2ED7BF1600FAB2C9 /* DeviceActivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = DeviceActivity.framework; path = System/Library/Frameworks/DeviceActivity.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -77,6 +119,20 @@
 			);
 			target = 279BC8C92ED157E800FAB2C9 /* Zeno */;
 		};
+		279BCF1D2ED7B12200FAB2C9 /* Exceptions for "ZenoShieldExtension" folder in "ZenoShieldExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 279BCF0B2ED7B12100FAB2C9 /* ZenoShieldExtension */;
+		};
+		279BCFC82ED7BF1600FAB2C9 /* Exceptions for "ZenoDeviceMonitor" folder in "ZenoDeviceMonitor" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 279BCFB92ED7BF1600FAB2C9 /* ZenoDeviceMonitor */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -98,6 +154,22 @@
 		279BC8E42ED157EA00FAB2C9 /* ZenoUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = ZenoUITests;
+			sourceTree = "<group>";
+		};
+		279BCF122ED7B12200FAB2C9 /* ZenoShieldExtension */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				279BCF1D2ED7B12200FAB2C9 /* Exceptions for "ZenoShieldExtension" folder in "ZenoShieldExtension" target */,
+			);
+			path = ZenoShieldExtension;
+			sourceTree = "<group>";
+		};
+		279BCFBD2ED7BF1600FAB2C9 /* ZenoDeviceMonitor */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				279BCFC82ED7BF1600FAB2C9 /* Exceptions for "ZenoDeviceMonitor" folder in "ZenoDeviceMonitor" target */,
+			);
+			path = ZenoDeviceMonitor;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -124,6 +196,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		279BCF092ED7B12100FAB2C9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				279BCF0F2ED7B12100FAB2C9 /* ManagedSettings.framework in Frameworks */,
+				279BCF112ED7B12200FAB2C9 /* ManagedSettingsUI.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		279BCFB72ED7BF1600FAB2C9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				279BCFBC2ED7BF1600FAB2C9 /* DeviceActivity.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -133,6 +222,9 @@
 				279BC8CC2ED157E800FAB2C9 /* Zeno */,
 				279BC8DA2ED157EA00FAB2C9 /* ZenoTests */,
 				279BC8E42ED157EA00FAB2C9 /* ZenoUITests */,
+				279BCF122ED7B12200FAB2C9 /* ZenoShieldExtension */,
+				279BCFBD2ED7BF1600FAB2C9 /* ZenoDeviceMonitor */,
+				279BCF0D2ED7B12100FAB2C9 /* Frameworks */,
 				279BC8CB2ED157E800FAB2C9 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -143,8 +235,20 @@
 				279BC8CA2ED157E800FAB2C9 /* Zeno.app */,
 				279BC8D72ED157EA00FAB2C9 /* ZenoTests.xctest */,
 				279BC8E12ED157EA00FAB2C9 /* ZenoUITests.xctest */,
+				279BCF0C2ED7B12100FAB2C9 /* ZenoShieldExtension.appex */,
+				279BCFBA2ED7BF1600FAB2C9 /* ZenoDeviceMonitor.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		279BCF0D2ED7B12100FAB2C9 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				279BCF0E2ED7B12100FAB2C9 /* ManagedSettings.framework */,
+				279BCF102ED7B12200FAB2C9 /* ManagedSettingsUI.framework */,
+				279BCFBB2ED7BF1600FAB2C9 /* DeviceActivity.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -157,10 +261,13 @@
 				279BC8C62ED157E800FAB2C9 /* Sources */,
 				279BC8C72ED157E800FAB2C9 /* Frameworks */,
 				279BC8C82ED157E800FAB2C9 /* Resources */,
+				279BCF1E2ED7B12200FAB2C9 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				279BCF182ED7B12200FAB2C9 /* PBXTargetDependency */,
+				279BCFC32ED7BF1600FAB2C9 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				279BC8CC2ED157E800FAB2C9 /* Zeno */,
@@ -218,6 +325,50 @@
 			productReference = 279BC8E12ED157EA00FAB2C9 /* ZenoUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		279BCF0B2ED7B12100FAB2C9 /* ZenoShieldExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 279BCF1A2ED7B12200FAB2C9 /* Build configuration list for PBXNativeTarget "ZenoShieldExtension" */;
+			buildPhases = (
+				279BCF082ED7B12100FAB2C9 /* Sources */,
+				279BCF092ED7B12100FAB2C9 /* Frameworks */,
+				279BCF0A2ED7B12100FAB2C9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				279BCF122ED7B12200FAB2C9 /* ZenoShieldExtension */,
+			);
+			name = ZenoShieldExtension;
+			packageProductDependencies = (
+			);
+			productName = ZenoShieldExtension;
+			productReference = 279BCF0C2ED7B12100FAB2C9 /* ZenoShieldExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		279BCFB92ED7BF1600FAB2C9 /* ZenoDeviceMonitor */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 279BCFC52ED7BF1600FAB2C9 /* Build configuration list for PBXNativeTarget "ZenoDeviceMonitor" */;
+			buildPhases = (
+				279BCFB62ED7BF1600FAB2C9 /* Sources */,
+				279BCFB72ED7BF1600FAB2C9 /* Frameworks */,
+				279BCFB82ED7BF1600FAB2C9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				279BCFBD2ED7BF1600FAB2C9 /* ZenoDeviceMonitor */,
+			);
+			name = ZenoDeviceMonitor;
+			packageProductDependencies = (
+			);
+			productName = ZenoDeviceMonitor;
+			productReference = 279BCFBA2ED7BF1600FAB2C9 /* ZenoDeviceMonitor.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -239,6 +390,12 @@
 						CreatedOnToolsVersion = 26.1.1;
 						TestTargetID = 279BC8C92ED157E800FAB2C9;
 					};
+					279BCF0B2ED7B12100FAB2C9 = {
+						CreatedOnToolsVersion = 26.1.1;
+					};
+					279BCFB92ED7BF1600FAB2C9 = {
+						CreatedOnToolsVersion = 26.1.1;
+					};
 				};
 			};
 			buildConfigurationList = 279BC8C52ED157E800FAB2C9 /* Build configuration list for PBXProject "Zeno" */;
@@ -258,6 +415,8 @@
 				279BC8C92ED157E800FAB2C9 /* Zeno */,
 				279BC8D62ED157EA00FAB2C9 /* ZenoTests */,
 				279BC8E02ED157EA00FAB2C9 /* ZenoUITests */,
+				279BCF0B2ED7B12100FAB2C9 /* ZenoShieldExtension */,
+				279BCFB92ED7BF1600FAB2C9 /* ZenoDeviceMonitor */,
 			);
 		};
 /* End PBXProject section */
@@ -278,6 +437,20 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		279BC8DF2ED157EA00FAB2C9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		279BCF0A2ED7B12100FAB2C9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		279BCFB82ED7BF1600FAB2C9 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -308,6 +481,20 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		279BCF082ED7B12100FAB2C9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		279BCFB62ED7BF1600FAB2C9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -320,6 +507,16 @@
 			isa = PBXTargetDependency;
 			target = 279BC8C92ED157E800FAB2C9 /* Zeno */;
 			targetProxy = 279BC8E22ED157EA00FAB2C9 /* PBXContainerItemProxy */;
+		};
+		279BCF182ED7B12200FAB2C9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 279BCF0B2ED7B12100FAB2C9 /* ZenoShieldExtension */;
+			targetProxy = 279BCF172ED7B12200FAB2C9 /* PBXContainerItemProxy */;
+		};
+		279BCFC32ED7BF1600FAB2C9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 279BCFB92ED7BF1600FAB2C9 /* ZenoDeviceMonitor */;
+			targetProxy = 279BCFC22ED7BF1600FAB2C9 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -601,6 +798,122 @@
 			};
 			name = Release;
 		};
+		279BCF1B2ED7B12200FAB2C9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ZenoShieldExtension/ZenoShieldExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = A2JAGQNDRL;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ZenoShieldExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = ZenoShieldExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = co.karthik.Zeno.ZenoShieldExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		279BCF1C2ED7B12200FAB2C9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ZenoShieldExtension/ZenoShieldExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = A2JAGQNDRL;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ZenoShieldExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = ZenoShieldExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = co.karthik.Zeno.ZenoShieldExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		279BCFC62ED7BF1600FAB2C9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ZenoDeviceMonitor/ZenoDeviceMonitor.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = A2JAGQNDRL;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ZenoDeviceMonitor/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = ZenoDeviceMonitor;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = co.karthik.Zeno.ZenoDeviceMonitor;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		279BCFC72ED7BF1600FAB2C9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ZenoDeviceMonitor/ZenoDeviceMonitor.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = A2JAGQNDRL;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ZenoDeviceMonitor/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = ZenoDeviceMonitor;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = co.karthik.Zeno.ZenoDeviceMonitor;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -636,6 +949,24 @@
 			buildConfigurations = (
 				279BC8F22ED157EA00FAB2C9 /* Debug */,
 				279BC8F32ED157EA00FAB2C9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		279BCF1A2ED7B12200FAB2C9 /* Build configuration list for PBXNativeTarget "ZenoShieldExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				279BCF1B2ED7B12200FAB2C9 /* Debug */,
+				279BCF1C2ED7B12200FAB2C9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		279BCFC52ED7BF1600FAB2C9 /* Build configuration list for PBXNativeTarget "ZenoDeviceMonitor" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				279BCFC62ED7BF1600FAB2C9 /* Debug */,
+				279BCFC72ED7BF1600FAB2C9 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

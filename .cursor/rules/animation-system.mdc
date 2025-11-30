@@ -1,0 +1,168 @@
+# Zeno Animation System
+
+> Based on [Cash App Motion Foundations](https://design.cash.app/motion) adapted for Zeno's stoic yet vibrant aesthetic.
+
+## Core Principles
+
+### 1. Purpose Over Polish
+Every animation must have a **reason**:
+- **Feedback**: Confirm user actions (button press, selection)
+- **Orientation**: Help users understand spatial relationships
+- **Focus**: Direct attention to important changes
+- **Delight**: Reward moments (unlocking, earning credits)
+
+If an animation doesn't serve one of these purposes, **don't add it**.
+
+### 2. The Zeno Feel
+Zeno is **heavy, deliberate, and mechanical** — not bouncy or playful.
+- Prefer **ease-out** curves (fast start, slow settle)
+- Avoid excessive spring bounce
+- Use **opacity + scale** together for smooth transitions
+- Motion should feel like **well-oiled machinery**, not rubber bands
+
+---
+
+## Duration Tokens
+
+Use `ZenoSemanticTokens.Motion.Duration.*` — never hardcode values.
+
+| Token | Value | Use Case |
+|-------|-------|----------|
+| `snap` | 0.15s | Instant feedback (taps, toggles, selections) |
+| `fast` | 0.3s | Standard UI transitions (sheets, chip selection) |
+| `medium` | 0.5s | Heavier elements (cards expanding, modals) |
+| `slow` | 0.8s | Ceremonial moments (unlock animation, rewards) |
+| `breathe` | 2.0s | Ambient loops (pulsing dots, background effects) |
+
+---
+
+## Easing Curves
+
+### Standard Eases (from Tokens)
+```swift
+// Mechanical ease - starts fast, hits a wall, settles
+ZenoSemanticTokens.Motion.Ease.mechanical
+
+// Liquid ease - smooth, water-like flow  
+ZenoSemanticTokens.Motion.Ease.liquid
+
+// Standard ease - default UI transitions
+ZenoSemanticTokens.Motion.Ease.standard
+```
+
+### When to Use Each
+- **mechanical**: Primary actions (unshield button, session start)
+- **liquid**: Continuous/looping animations (shimmer, progress rings)
+- **standard**: Everything else (navigation, chips, accordions)
+
+---
+
+## Animation Patterns
+
+### Pattern 1: Feedback (Snap)
+For immediate response to user input.
+```swift
+.animation(.easeOut(duration: ZenoSemanticTokens.Motion.Duration.snap), value: isSelected)
+```
+
+### Pattern 2: Transition (Fast)
+For state changes and navigation.
+```swift
+.animation(.easeInOut(duration: ZenoSemanticTokens.Motion.Duration.fast), value: showContent)
+```
+
+### Pattern 3: Emphasis (Medium)
+For drawing attention to important changes.
+```swift
+.animation(ZenoSemanticTokens.Motion.Ease.mechanical, value: isUnlocked)
+```
+
+### Pattern 4: Ceremony (Slow)
+For rewarding moments that deserve celebration.
+```swift
+.animation(ZenoSemanticTokens.Motion.Ease.liquid, value: sessionStarted)
+```
+
+### Pattern 5: Ambient (Breathe)
+For continuous background effects.
+```swift
+.animation(.easeInOut(duration: ZenoSemanticTokens.Motion.Duration.breathe).repeatForever(autoreverses: true), value: isPulsing)
+```
+
+### Pattern 6: Screen Transitions
+For fullscreen view changes. Use `.asymmetric` for different enter/exit animations.
+```swift
+// Shield lowering/raising metaphor — slides from bottom
+private var sessionTransition: AnyTransition {
+    .asymmetric(
+        insertion: .move(edge: .bottom).combined(with: .opacity),
+        removal: .move(edge: .bottom).combined(with: .opacity)
+    )
+}
+
+// Apply with mechanical easing for deliberate feel
+.transition(sessionTransition)
+.animation(ZenoSemanticTokens.Motion.Ease.mechanical, value: isShowing)
+```
+
+**Transition Options by Metaphor:**
+| Metaphor | Transition | Use Case |
+|----------|------------|----------|
+| Shield lowering | `.move(edge: .bottom)` | Session start/end |
+| Reveal | `.scale.combined(with: .opacity)` | Modals, cards |
+| Slide over | `.move(edge: .trailing)` | Navigation push |
+| Fade | `.opacity` | Subtle state changes |
+
+---
+
+## Reusable Animation Modifiers
+
+Located in `Zeno/DesignSystem/Animations/`
+
+### Available Modifiers
+| Modifier | Description |
+|----------|-------------|
+| `.zenoShimmer()` | Animated gradient sweep for loading/active states |
+| `.zenoPulse()` | Subtle scale pulse for "alive" indicators |
+| `.zenoFadeIn()` | Opacity entrance animation |
+| `.zenoScaleIn()` | Scale + opacity entrance animation |
+
+### Usage Example
+```swift
+Text("Zeno is shielding your apps")
+    .zenoShimmer(isActive: true)
+
+Circle()
+    .zenoPulse(isActive: viewModel.isBlocking)
+```
+
+---
+
+## Do's and Don'ts
+
+### ✅ Do
+- Use tokens for all duration/easing values
+- Use `ZenoTokens.ColorBase.*` for animation colors (e.g., `White._75` for shimmer)
+- Combine opacity + scale for smoother feel
+- Test on device (simulators lie about performance)
+- Add `withAnimation {}` for state changes that need animation
+- Use `.animation(_:value:)` modifier for reactive animations
+
+### ❌ Don't
+- Hardcode duration values (`0.3` instead of `Duration.fast`)
+- Hardcode colors (`.white` instead of `ZenoTokens.ColorBase.White._100`)
+- Use bouncy springs (not the Zeno vibe)
+- Animate everything — restraint is key
+- Block user interaction during animations
+- Use `.animation(_:)` without a value (deprecated)
+
+---
+
+## Implementation Checklist
+
+Before adding any animation:
+1. [ ] What **purpose** does this serve? (Feedback/Orientation/Focus/Delight)
+2. [ ] Which **duration token** is appropriate?
+3. [ ] Which **easing curve** matches the intent?
+4. [ ] Can I use an **existing modifier** from `Animations/`?
+5. [ ] Does it feel **mechanical and deliberate** (not bouncy)?

@@ -48,6 +48,13 @@ class LocalStepCreditsStore: StepCreditsStoring {
         saveLedger(ledger)
     }
     
+    func refundCredits(minutes: Int) {
+        var ledger = loadLedger(for: Date())
+        // Reduce spent credits (can't go below 0)
+        ledger.creditsSpent = max(0, ledger.creditsSpent - minutes)
+        saveLedger(ledger)
+    }
+    
     func updateSteps(count: Int) {
         var ledger = loadLedger(for: Date())
         ledger.stepsSynced = count

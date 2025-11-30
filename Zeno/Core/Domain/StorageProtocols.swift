@@ -14,6 +14,9 @@ protocol StepCreditsStoring {
     /// Convenience: Spends credits on the current ledger (today).
     func spendCredits(minutes: Int) throws
     
+    /// Convenience: Refunds credits to the current ledger (e.g., when user re-locks early).
+    func refundCredits(minutes: Int)
+    
     /// Convenience: Updates the step count for today.
     func updateSteps(count: Int)
 }

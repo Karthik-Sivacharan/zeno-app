@@ -31,6 +31,9 @@ class LocalManagedAppsStore: ManagedAppsStoring {
         var config = loadConfig()
         config.selection = selection
         saveConfig(config)
+        
+        // Also save to shared storage for extensions
+        SharedBlockingState.shared.saveAppSelection(selection)
     }
     
     func logUnlock(duration: Int, cost: Int, appName: String?) {

@@ -8,6 +8,9 @@ struct HomeView: View {
     // Accordion expansion states
     @State private var isDebugExpanded = false
     
+    // Walk Now sheet state
+    @State private var isShowingWalkNow = false
+    
     var body: some View {
         ZStack {
             // MARK: - Default Home Content
@@ -16,25 +19,45 @@ struct HomeView: View {
             // MARK: - Fullscreen Active Session Overlay
             if viewModel.hasActiveUnblockSession {
                 ActiveSessionView(viewModel: viewModel)
-                    .transition(sessionTransition)
+                    .transition(fullscreenTransition)
+            }
+            
+            // MARK: - Fullscreen Walk Now Overlay
+            if isShowingWalkNow {
+                WalkNowView(viewModel: viewModel, isPresented: $isShowingWalkNow)
+                    .transition(fullscreenTransition)
             }
         }
         .animation(ZenoSemanticTokens.Motion.Ease.mechanical, value: viewModel.hasActiveUnblockSession)
+        .animation(ZenoSemanticTokens.Motion.Ease.mechanical, value: isShowingWalkNow)
         .task {
             await viewModel.loadData()
+            // Start real-time step observation when view appears
+            viewModel.startObservingSteps()
         }
         .onChange(of: scenePhase) { oldPhase, newPhase in
-            if newPhase == .active {
-                // App came to foreground - resync timer with real time
+            switch newPhase {
+            case .active:
+                // App came to foreground - resync timer and start step observation
                 viewModel.syncTimerState()
+                viewModel.startObservingSteps()
+            case .background, .inactive:
+                // App going to background - stop step observation to save battery
+                viewModel.stopObservingSteps()
+            @unknown default:
+                break
             }
+        }
+        .onDisappear {
+            // Clean up observation when view disappears
+            viewModel.stopObservingSteps()
         }
     }
     
-    // MARK: - Session Transition
+    // MARK: - Fullscreen Transition
     
-    /// Custom transition for the session view — slides up like a shield lowering
-    private var sessionTransition: AnyTransition {
+    /// Custom transition for fullscreen overlays — slides up smoothly
+    private var fullscreenTransition: AnyTransition {
         .asymmetric(
             insertion: .move(edge: .bottom)
                 .combined(with: .opacity),
@@ -48,12 +71,13 @@ struct HomeView: View {
     private var defaultHomeContent: some View {
         ScrollView {
             VStack(spacing: ZenoSemanticTokens.Space.lg) {
-                // Error message (if any)
+                // Error message (if any) - displayed as a friendly callout
                 if let error = viewModel.errorMessage {
-                    Text("Error: \(error)")
-                        .font(ZenoTokens.Typography.bodyMedium)
-                        .foregroundColor(ZenoSemanticTokens.Theme.destructive)
-                        .padding()
+                    ZenoCallout(
+                        icon: "exclamationmark.triangle",
+                        text: error,
+                        variant: .warning
+                    )
                 }
                 
                 // MARK: - Debug Accordion (collapsible)
@@ -106,13 +130,32 @@ struct HomeView: View {
     
     private var floatingUnblockControls: some View {
         VStack(spacing: ZenoSemanticTokens.Space.md) {
-            // No credits callout - show when apps are shielded but user can't afford any duration
+            // No credits section - show when apps are shielded but user can't afford any duration
             if !viewModel.canAffordAnyDuration && viewModel.isBlocking {
-                ZenoCallout(
-                    icon: "figure.walk",
-                    text: "Out of time. Walk to earn more minutes!",
-                    variant: .warning
-                )
+                VStack(spacing: ZenoSemanticTokens.Space.md) {
+                    ZenoCallout(
+                        icon: "exclamationmark.triangle",
+                        text: "Out of time. Walk to earn more minutes!",
+                        variant: .warning
+                    )
+                    
+                    // Walk Now CTA - bright green to encourage action
+                    Button {
+                        isShowingWalkNow = true
+                    } label: {
+                        HStack(spacing: ZenoSemanticTokens.Space.sm) {
+                            Image(systemName: "figure.walk")
+                                .font(ZenoTokens.Typography.labelMedium)
+                            Text("Walk Now")
+                                .font(ZenoTokens.Typography.labelMedium)
+                        }
+                        .foregroundColor(ZenoSemanticTokens.Theme.primaryForeground)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, ZenoSemanticTokens.Space.md)
+                        .background(ZenoSemanticTokens.Theme.primary)
+                        .cornerRadius(ZenoSemanticTokens.Radius.lg)
+                    }
+                }
             }
             
             // Duration chips - only show if user can afford at least one duration AND apps are shielded
@@ -137,9 +180,9 @@ struct HomeView: View {
                 }
             }
             
-            // Unshield button - only relevant when apps are shielded
-            // Uses muted variant (clay) to discourage frequent unshielding
-            if viewModel.isBlocking {
+            // Unshield button - only show when apps are shielded AND user can afford at least one duration
+            // Hidden when user has 0 credits (Walk Now takes over)
+            if viewModel.isBlocking && viewModel.canAffordAnyDuration {
                 ZenoButton("Unshield Apps", variant: .muted, isLoading: viewModel.isUnblocking) {
                     Task {
                         await viewModel.unblockApps()
@@ -191,7 +234,7 @@ struct HomeView: View {
             isExpanded: $isDebugExpanded
         ) {
             VStack(alignment: .leading, spacing: ZenoSemanticTokens.Space.lg) {
-                // Debug Actions Row
+                // Debug Actions Row 1
                 HStack(spacing: ZenoSemanticTokens.Space.sm) {
                     Button {
                         Task {
@@ -224,6 +267,28 @@ struct HomeView: View {
                         .background(ZenoSemanticTokens.Theme.destructive.opacity(0.15))
                         .cornerRadius(ZenoSemanticTokens.Radius.sm)
                     }
+                    
+                    Spacer()
+                }
+                
+                // Debug Actions Row 2
+                HStack(spacing: ZenoSemanticTokens.Space.sm) {
+                    Button {
+                        viewModel.debugSpendAllCredits()
+                    } label: {
+                        HStack(spacing: ZenoSemanticTokens.Space.xs) {
+                            Image(systemName: "creditcard.trianglebadge.exclamationmark")
+                            Text("Use All Credits")
+                        }
+                        .font(ZenoTokens.Typography.labelSmall)
+                        .foregroundColor(ZenoTokens.ColorBase.Ember._400)
+                        .padding(.horizontal, ZenoSemanticTokens.Space.sm)
+                        .padding(.vertical, ZenoSemanticTokens.Space.xs)
+                        .background(ZenoTokens.ColorBase.Ember._400.opacity(0.15))
+                        .cornerRadius(ZenoSemanticTokens.Radius.sm)
+                    }
+                    .disabled(viewModel.creditsAvailable == 0)
+                    .opacity(viewModel.creditsAvailable == 0 ? 0.5 : 1.0)
                     
                     Spacer()
                 }

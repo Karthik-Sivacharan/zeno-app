@@ -50,6 +50,14 @@ class HomeViewModel {
     /// The timer that updates remaining time
     private var countdownTimer: Timer?
     
+    // MARK: - Step Observation
+    
+    /// Task that handles real-time step observation
+    private var stepObservationTask: Task<Void, Never>?
+    
+    /// Whether step observation is currently active
+    var isObservingSteps: Bool = false
+    
     // MARK: - Error Handling
     var errorMessage: String? = nil
     
@@ -170,8 +178,18 @@ class HomeViewModel {
             
         } catch {
             await MainActor.run {
-                self.errorMessage = error.localizedDescription
-                // Even on error, try to load local ledger if possible (it might have old data)
+                // Map technical errors to user-friendly messages
+                // "No data available for the specified predicate" means no steps recorded yet - not a real error
+                let errorString = error.localizedDescription.lowercased()
+                if errorString.contains("predicate") || errorString.contains("no data") {
+                    // This is normal - user just hasn't walked yet or data hasn't synced
+                    self.errorMessage = nil
+                } else {
+                    // Genuine error - show user-friendly message
+                    self.errorMessage = "We couldn't count your steps. Please check Health permissions in Settings."
+                }
+                
+                // Load local ledger regardless (it might have cached data)
                 let ledger = stepStore.loadLedger(for: Date())
                 self.steps = ledger.stepsSynced
                 self.creditsEarned = ledger.creditsEarned
@@ -179,6 +197,77 @@ class HomeViewModel {
                 self.creditsAvailable = ledger.creditsAvailable
                 self.stepsAvailable = ledger.creditsAvailable * stepsPerMinute
             }
+        }
+    }
+    
+    // MARK: - Real-Time Step Observation
+    
+    /// Start observing steps in real-time. Call when app becomes active.
+    func startObservingSteps() {
+        // Don't start if already observing
+        guard !isObservingSteps else { return }
+        
+        isObservingSteps = true
+        print("DEBUG: Starting step observation in ViewModel")
+        
+        stepObservationTask = Task { [weak self] in
+            guard let self = self else { return }
+            
+            // Get the stream from the health service
+            let stepStream = self.healthService.observeTodaySteps()
+            
+            // Iterate over incoming step updates
+            for await steps in stepStream {
+                // Check if task was cancelled
+                if Task.isCancelled { break }
+                
+                // Update the store with new step count
+                self.stepStore.updateSteps(count: steps)
+                
+                // Load updated ledger
+                let ledger = self.stepStore.loadLedger(for: Date())
+                
+                // Update UI on main actor
+                await MainActor.run {
+                    self.steps = ledger.stepsSynced
+                    self.creditsEarned = ledger.creditsEarned
+                    self.creditsSpent = ledger.creditsSpent
+                    self.creditsAvailable = ledger.creditsAvailable
+                    self.stepsAvailable = ledger.creditsAvailable * self.stepsPerMinute
+                    self.errorMessage = nil
+                }
+            }
+        }
+    }
+    
+    /// Stop observing steps. Call when app goes to background.
+    func stopObservingSteps() {
+        guard isObservingSteps else { return }
+        
+        print("DEBUG: Stopping step observation in ViewModel")
+        
+        stepObservationTask?.cancel()
+        stepObservationTask = nil
+        healthService.stopObservingSteps()
+        isObservingSteps = false
+    }
+    
+    // MARK: - Debug Methods
+    
+    /// Spend all available credits (for testing "Walk Now" feature)
+    func debugSpendAllCredits() {
+        guard creditsAvailable > 0 else { return }
+        
+        do {
+            try stepStore.spendCredits(minutes: creditsAvailable)
+            
+            // Reload ledger to update UI
+            let ledger = stepStore.loadLedger(for: Date())
+            creditsSpent = ledger.creditsSpent
+            creditsAvailable = ledger.creditsAvailable
+            stepsAvailable = ledger.creditsAvailable * stepsPerMinute
+        } catch {
+            errorMessage = "Debug: Failed to spend credits"
         }
     }
     

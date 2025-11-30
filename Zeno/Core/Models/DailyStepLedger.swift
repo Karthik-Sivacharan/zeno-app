@@ -12,13 +12,13 @@ struct DailyStepLedger: Codable, Equatable {
     var creditsSpent: Int
     
     // MARK: - Configuration (Could be moved to a Config object later)
-    private let stepsPerMinute: Int = 100 // 1000 steps = 10 mins
+    private static let stepsPerMinute: Int = 100 // 1000 steps = 10 mins
     
     // MARK: - Computed Logic
     
     /// Total minutes earned based on steps
     var creditsEarned: Int {
-        return stepsSynced / stepsPerMinute
+        return stepsSynced / Self.stepsPerMinute
     }
     
     /// Minutes available to spend
