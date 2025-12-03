@@ -316,8 +316,16 @@ class HomeViewModel {
     /// Unblock apps for the selected duration
     func unblockApps() async {
         guard let duration = selectedDuration else { return }
+        
+        // Reload ledger to ensure we have the latest credit state
+        let ledger = stepStore.loadLedger(for: Date())
+        creditsSpent = ledger.creditsSpent
+        creditsAvailable = ledger.creditsAvailable
+        stepsAvailable = ledger.creditsAvailable * stepsPerMinute
+        
         guard creditsAvailable >= duration.rawValue else {
-            errorMessage = "Not enough credits to unblock for \(duration.rawValue) minutes"
+            selectedDuration = nil
+            errorMessage = "Not enough credits. Walk to earn more minutes!"
             return
         }
         
@@ -351,7 +359,27 @@ class HomeViewModel {
         } catch {
             await MainActor.run {
                 self.isUnblocking = false
-                self.errorMessage = "Failed to unblock apps: \(error.localizedDescription)"
+                
+                // Reload ledger to sync UI state with actual credits
+                let ledger = self.stepStore.loadLedger(for: Date())
+                self.creditsSpent = ledger.creditsSpent
+                self.creditsAvailable = ledger.creditsAvailable
+                self.stepsAvailable = ledger.creditsAvailable * self.stepsPerMinute
+                
+                // Clear selection since the operation failed
+                self.selectedDuration = nil
+                
+                // Map technical errors to user-friendly messages
+                if let stepError = error as? StepCreditsError {
+                    switch stepError {
+                    case .insufficientCredits:
+                        self.errorMessage = "Not enough credits. Walk to earn more minutes!"
+                    case .ledgerNotFound:
+                        self.errorMessage = "Something went wrong. Please try again."
+                    }
+                } else {
+                    self.errorMessage = "Failed to unblock apps. Please try again."
+                }
             }
         }
     }

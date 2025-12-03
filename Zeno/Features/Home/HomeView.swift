@@ -2,31 +2,54 @@ import SwiftUI
 
 struct HomeView: View {
     @State private var viewModel = HomeViewModel()
-    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = true
     @Environment(\.scenePhase) private var scenePhase
     
-    // Accordion expansion states
-    @State private var isDebugExpanded = false
+    // Tab selection
+    @State private var selectedTab: AppTab = .home
     
     // Walk Now sheet state
     @State private var isShowingWalkNow = false
     
     var body: some View {
         ZStack {
-            // MARK: - Default Home Content
-            defaultHomeContent
+            // MARK: - Stable Background (never animates)
+            ZenoSemanticTokens.Theme.background
+                .ignoresSafeArea()
             
-            // MARK: - Fullscreen Active Session Overlay
-            if viewModel.hasActiveUnblockSession {
+            // MARK: - Tab Content (animated)
+            ZStack {
+                if selectedTab == .home {
+                    homeTabContent
+                        .transition(TabTransition.lift)
+                }
+                
+                if selectedTab == .debug {
+                    debugTabContent
+                        .transition(TabTransition.lift)
+                }
+                
+                if selectedTab == .settings {
+                    settingsTabContent
+                        .transition(TabTransition.lift)
+                }
+            }
+            .animation(.smooth(duration: ZenoSemanticTokens.Motion.Duration.fast), value: selectedTab)
+            
+            // MARK: - Fullscreen Active Session Overlay (only on Home tab)
+            if selectedTab == .home && viewModel.hasActiveUnblockSession {
                 ActiveSessionView(viewModel: viewModel)
                     .transition(fullscreenTransition)
             }
             
-            // MARK: - Fullscreen Walk Now Overlay
-            if isShowingWalkNow {
+            // MARK: - Fullscreen Walk Now Overlay (only on Home tab)
+            if selectedTab == .home && isShowingWalkNow {
                 WalkNowView(viewModel: viewModel, isPresented: $isShowingWalkNow)
                     .transition(fullscreenTransition)
             }
+        }
+        // MARK: - Fixed Bottom Area (hidden when fullscreen overlays are active)
+        .safeAreaInset(edge: .bottom) {
+            bottomBar
         }
         .animation(ZenoSemanticTokens.Motion.Ease.mechanical, value: viewModel.hasActiveUnblockSession)
         .animation(ZenoSemanticTokens.Motion.Ease.mechanical, value: isShowingWalkNow)
@@ -48,10 +71,30 @@ struct HomeView: View {
                 break
             }
         }
+        .onChange(of: selectedTab) { oldTab, newTab in
+            // Refresh data when returning to Home tab (e.g., after using Debug tools)
+            if newTab == .home {
+                Task {
+                    await viewModel.loadData()
+                }
+            }
+        }
         .onDisappear {
             // Clean up observation when view disappears
             viewModel.stopObservingSteps()
         }
+    }
+    
+    // MARK: - Debug Tab Content
+    
+    private var debugTabContent: some View {
+        DebugView()
+    }
+    
+    // MARK: - Settings Tab Content
+    
+    private var settingsTabContent: some View {
+        SettingsView()
     }
     
     // MARK: - Fullscreen Transition
@@ -66,9 +109,11 @@ struct HomeView: View {
         )
     }
     
-    // MARK: - Default Home Content
+    // MARK: - Home Tab Content
     
-    private var defaultHomeContent: some View {
+    private var homeTabContent: some View {
+        // Note: Background is stable at parent level (never animates during tab transitions)
+        // Tab bar + floating controls are at parent level (stay fixed during transitions)
         ScrollView {
             VStack(spacing: ZenoSemanticTokens.Space.lg) {
                 // Error message (if any) - displayed as a friendly callout
@@ -79,18 +124,12 @@ struct HomeView: View {
                         variant: .warning
                     )
                 }
-                
-                // MARK: - Debug Accordion (collapsible)
-                debugAccordion
             }
             .padding()
+            .frame(maxWidth: .infinity)
         }
-        .background(ZenoSemanticTokens.Theme.background)
         .safeAreaInset(edge: .top) {
             statusHeader
-        }
-        .safeAreaInset(edge: .bottom) {
-            floatingUnblockControls
         }
     }
     
@@ -192,156 +231,48 @@ struct HomeView: View {
             }
         }
         .padding(.horizontal, ZenoSemanticTokens.Space.lg)
-        .padding(.top, ZenoSemanticTokens.Space.lg)
-        .padding(.bottom, ZenoSemanticTokens.Space.md)
+        .padding(.vertical, ZenoSemanticTokens.Space.lg)
         .frame(maxWidth: .infinity)
         .background(
-            // Frosted glass effect - extends into safe area
             Rectangle()
-                .fill(.ultraThinMaterial)
-                .overlay(
-                    Rectangle()
-                        .fill(ZenoSemanticTokens.Theme.background.opacity(0.7))
-                )
+                .fill(ZenoSemanticTokens.Theme.card.opacity(0.95))
                 .overlay(alignment: .top) {
-                    // Subtle top border
                     Rectangle()
                         .fill(ZenoSemanticTokens.Theme.border)
-                        .frame(height: ZenoSemanticTokens.Stroke.thin)
+                        .frame(height: ZenoSemanticTokens.Stroke.hairline)
                 }
-                .ignoresSafeArea(edges: .bottom)
         )
     }
     
-    // MARK: - Debug Accordion
+    // MARK: - Bottom Bar (Tab Bar + Floating Controls)
     
-    private var debugAccordion: some View {
-        Accordion(
-            title: "Debug Panel",
-            icon: "ladybug",
-            isExpanded: $isDebugExpanded
-        ) {
-            VStack(alignment: .leading, spacing: ZenoSemanticTokens.Space.lg) {
-                // Debug Actions Row 1
-                HStack(spacing: ZenoSemanticTokens.Space.sm) {
-                    Button {
-                        Task {
-                            await viewModel.loadData()
-                        }
-                    } label: {
-                        HStack(spacing: ZenoSemanticTokens.Space.xs) {
-                            Image(systemName: "arrow.clockwise")
-                            Text("Refresh")
-                        }
-                        .font(ZenoTokens.Typography.labelSmall)
-                        .foregroundColor(ZenoSemanticTokens.Theme.secondaryForeground)
-                        .padding(.horizontal, ZenoSemanticTokens.Space.sm)
-                        .padding(.vertical, ZenoSemanticTokens.Space.xs)
-                        .background(ZenoSemanticTokens.Theme.muted)
-                        .cornerRadius(ZenoSemanticTokens.Radius.sm)
-                    }
-                    
-                    Button {
-                        hasCompletedOnboarding = false
-                    } label: {
-                        HStack(spacing: ZenoSemanticTokens.Space.xs) {
-                            Image(systemName: "arrow.counterclockwise")
-                            Text("Reset Onboarding")
-                        }
-                        .font(ZenoTokens.Typography.labelSmall)
-                        .foregroundColor(ZenoSemanticTokens.Theme.destructive)
-                        .padding(.horizontal, ZenoSemanticTokens.Space.sm)
-                        .padding(.vertical, ZenoSemanticTokens.Space.xs)
-                        .background(ZenoSemanticTokens.Theme.destructive.opacity(0.15))
-                        .cornerRadius(ZenoSemanticTokens.Radius.sm)
-                    }
-                    
-                    Spacer()
+    /// Returns the bottom bar (tab bar + floating controls) or nothing when fullscreen overlays are active
+    @ViewBuilder
+    private var bottomBar: some View {
+        // Hide entire bottom area when fullscreen overlays (WalkNow, ActiveSession) are showing
+        if isShowingWalkNow || viewModel.hasActiveUnblockSession {
+            // Return nothing — fullscreen overlays cover the tab bar
+            EmptyView()
+        } else {
+            VStack(spacing: 0) {
+                // Floating controls only on Home tab
+                if selectedTab == .home {
+                    floatingUnblockControls
                 }
-                
-                // Debug Actions Row 2
-                HStack(spacing: ZenoSemanticTokens.Space.sm) {
-                    Button {
-                        viewModel.debugSpendAllCredits()
-                    } label: {
-                        HStack(spacing: ZenoSemanticTokens.Space.xs) {
-                            Image(systemName: "creditcard.trianglebadge.exclamationmark")
-                            Text("Use All Credits")
-                        }
-                        .font(ZenoTokens.Typography.labelSmall)
-                        .foregroundColor(ZenoTokens.ColorBase.Ember._400)
-                        .padding(.horizontal, ZenoSemanticTokens.Space.sm)
-                        .padding(.vertical, ZenoSemanticTokens.Space.xs)
-                        .background(ZenoTokens.ColorBase.Ember._400.opacity(0.15))
-                        .cornerRadius(ZenoSemanticTokens.Radius.sm)
-                    }
-                    .disabled(viewModel.creditsAvailable == 0)
-                    .opacity(viewModel.creditsAvailable == 0 ? 0.5 : 1.0)
-                    
-                    Spacer()
-                }
-                
-                // Steps Section
-                VStack(alignment: .leading, spacing: ZenoSemanticTokens.Space.sm) {
-                    Label("Steps", systemImage: "figure.walk")
-                        .font(ZenoTokens.Typography.labelSmall)
-                        .foregroundColor(ZenoSemanticTokens.Theme.mutedForeground)
-                    
-                    debugRow(label: "Total Walked", value: viewModel.steps.formatted())
-                    debugRow(label: "Available to Use", value: viewModel.stepsAvailable.formatted())
-                }
-                
-                Divider()
-                    .overlay(ZenoSemanticTokens.Theme.border)
-                
-                // Credits Section
-                VStack(alignment: .leading, spacing: ZenoSemanticTokens.Space.sm) {
-                    Label("Credits", systemImage: "clock")
-                        .font(ZenoTokens.Typography.labelSmall)
-                        .foregroundColor(ZenoSemanticTokens.Theme.mutedForeground)
-                    
-                    debugRow(label: "Earned", value: "\(viewModel.creditsEarned) min")
-                    debugRow(label: "Spent", value: "\(viewModel.creditsSpent) min")
-                    debugRow(label: "Available", value: "\(viewModel.creditsAvailable) min", highlight: true)
-                }
-                
-                Divider()
-                    .overlay(ZenoSemanticTokens.Theme.border)
-                
-                // Blocked Items Section
-                VStack(alignment: .leading, spacing: ZenoSemanticTokens.Space.sm) {
-                    Label("Blocked Items", systemImage: "lock.shield")
-                        .font(ZenoTokens.Typography.labelSmall)
-                        .foregroundColor(ZenoSemanticTokens.Theme.mutedForeground)
-                    
-                    debugRow(label: "Apps", value: "\(viewModel.blockedAppsCount)")
-                    debugRow(label: "Categories", value: "\(viewModel.blockedCategoriesCount)")
-                    debugRow(label: "Websites", value: "\(viewModel.blockedWebDomainsCount)")
-                }
+                tabBar
             }
         }
     }
     
-    // MARK: - Debug Row Helper
+    // MARK: - Tab Bar
     
-    private func debugRow(label: String, value: String, highlight: Bool = false) -> some View {
-        HStack {
-            Text(label)
-                .font(ZenoTokens.Typography.bodySmall)
-                .foregroundColor(ZenoSemanticTokens.Theme.mutedForeground)
-            
-            Spacer()
-            
-            Text(value)
-                .font(ZenoTokens.Typography.labelMedium)
-                .foregroundColor(highlight ? ZenoSemanticTokens.Theme.primary : ZenoSemanticTokens.Theme.secondaryForeground)
-                .monospacedDigit()
-        }
+    private var tabBar: some View {
+        ZenoTabBar(selection: $selectedTab, tabs: AppTab.allTabItems)
     }
-    
     
 }
 
 #Preview {
     HomeView()
 }
+

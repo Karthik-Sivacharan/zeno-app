@@ -343,6 +343,54 @@ struct SlideTransitionModifier: ViewModifier {
     }
 }
 
+// MARK: - Tab Transitions
+
+/// Custom transitions optimized for tab bar navigation.
+/// Subtle, fast, and content-focused — fits the Zeno minimal aesthetic.
+enum TabTransition {
+    /// Gentle fade with subtle vertical lift — the default Zeno tab transition.
+    /// Content rises slightly as it fades in, creating a sense of depth without being distracting.
+    static var lift: AnyTransition {
+        .asymmetric(
+            insertion: .modifier(
+                active: TabTransitionModifier(offsetY: 8, opacity: 0, scale: 1),
+                identity: TabTransitionModifier(offsetY: 0, opacity: 1, scale: 1)
+            ),
+            removal: .modifier(
+                active: TabTransitionModifier(offsetY: -4, opacity: 0, scale: 1),
+                identity: TabTransitionModifier(offsetY: 0, opacity: 1, scale: 1)
+            )
+        )
+    }
+    
+    /// Crossfade with a hint of scale — more dramatic, good for settings/profile.
+    static var breathe: AnyTransition {
+        .asymmetric(
+            insertion: .opacity.combined(with: .scale(scale: 0.98)),
+            removal: .opacity.combined(with: .scale(scale: 1.01))
+        )
+    }
+    
+    /// Pure opacity fade — most minimal, zero motion.
+    static var fade: AnyTransition {
+        .opacity
+    }
+}
+
+/// Helper modifier for tab transitions with vertical offset and opacity.
+struct TabTransitionModifier: ViewModifier {
+    let offsetY: CGFloat
+    let opacity: Double
+    let scale: CGFloat
+    
+    func body(content: Content) -> some View {
+        content
+            .offset(y: offsetY)
+            .opacity(opacity)
+            .scaleEffect(scale)
+    }
+}
+
 // MARK: - Blur Transition Effect
 
 /// A modifier that combines blur with opacity for dreamy transitions.

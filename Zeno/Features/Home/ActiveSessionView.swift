@@ -29,7 +29,7 @@ struct ActiveSessionView: View {
                 bottomActions
             }
             .padding(.horizontal, ZenoSemanticTokens.Space.lg)
-            .padding(.bottom, ZenoSemanticTokens.Space.xl)
+            // Note: No bottom padding needed — root-level safeAreaInset handles tab bar spacing
         }
     }
     

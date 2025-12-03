@@ -1,8 +1,6 @@
 ---
-description: Comprehensive guide to the Zeno Design System (Tokens, Typography, Colors, Spacing).
-globs: ["**/*.swift"]
+alwaysApply: true
 ---
-
 # Zeno Design System Rules
 
 ## 1. Core Principle: Token-First Design
@@ -84,8 +82,48 @@ VStack(spacing: ZenoSemanticTokens.Space.md) { ... }
 - Map component states directly to `ZenoSemanticTokens` or `ZenoTokens` inside the view.
 - **Gradients**: Use `ZenoSemanticTokens.Gradients` (e.g., `swampBody`, `acidFlow`) for rich backgrounds.
 
-## 4. Refactoring Check
+## 4. Apple Native Elements (Glass, Materials, Vibrancy)
+
+For system-level visual effects, **use Apple's native APIs directly** — do NOT wrap them in custom tokens.
+
+### 🪟 Glass / Frosted Effects
+**Source**: SwiftUI `Material` (iOS 15+)
+
+Use Apple's built-in materials for glass/vibrancy effects. These adapt automatically to light/dark mode, accessibility settings, and underlying content.
+
+**Available Materials** (thinnest to thickest):
+- `.ultraThinMaterial` — Most transparent, heavy blur
+- `.thinMaterial` — Light frost
+- `.regularMaterial` — Balanced (most common)
+- `.thickMaterial` — More opaque
+- `.ultraThickMaterial` — Nearly solid
+
+**Example:**
+```swift
+// ✅ Good: Use Apple's material directly
+.background(.ultraThinMaterial, in: Capsule())
+.background(.regularMaterial)
+
+// ❌ Avoid: Don't wrap in custom tokens
+.background(ZenoSemanticTokens.Glass.thin)  // Don't create this
+```
+
+**When to layer with Zeno colors:**
+You can overlay a semi-transparent Zeno color on top of a material for brand tinting:
+```swift
+.background(.ultraThinMaterial)
+.background(ZenoSemanticTokens.Theme.background.opacity(0.7))
+```
+
+### 📱 Other Native Elements
+Use Apple's native components directly when available:
+- **SF Symbols**: Use system icons via `Image(systemName:)`
+- **Haptics**: Use `UIImpactFeedbackGenerator` directly
+- **System Colors**: Prefer Zeno tokens, but `Color.clear` and `Color.primary` are acceptable for system integration
+
+## 5. Refactoring Check
 If you see:
 - `Color(.red)` -> Change to `ZenoSemanticTokens.Theme.destructive` or `ZenoTokens.ColorBase.Clay._500`.
 - `.padding(16)` -> Change to `.padding(ZenoSemanticTokens.Space.md)`.
 - `Font.system(size: 20)` -> Change to `ZenoTokens.Typography.titleXSmall`.
+- Manual blur + opacity for glass -> Change to `.background(.ultraThinMaterial)`.
