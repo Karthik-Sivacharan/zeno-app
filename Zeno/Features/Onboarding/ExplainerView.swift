@@ -1,76 +1,89 @@
 import SwiftUI
+import SVGView
 
 struct ExplainerContent {
     let title: String
     let description: String
+    /// Optional SVG filename (without extension) to display
+    let illustrationName: String?
+    
+    init(title: String, description: String, illustrationName: String? = nil) {
+        self.title = title
+        self.description = description
+        self.illustrationName = illustrationName
+    }
 }
 
 struct ExplainerView: View {
     let content: ExplainerContent
     let onNext: () -> Void
     
+    /// Controls staggered content animation
+    @State private var contentVisible = false
+    
     var body: some View {
         ZStack {
             // 1. Background & Atmosphere
             ZenoSemanticTokens.Theme.background
                 .ignoresSafeArea()
-            
-            // Top Gradient (Placeholder for assets)
-            GeometryReader { proxy in
-                ZenoSemanticTokens.Gradients.swampBody
-                    .overlay(
-                        ZenoSemanticTokens.Gradients.deepVoid
-                            .opacity(0.8)
-                    )
-                    .frame(height: proxy.size.height * 0.6) // Top 60%
-                    .mask(
-                        LinearGradient(
-                            colors: [.black, .black, .clear],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-            }
-            .ignoresSafeArea()
 
             // Noise Texture
             NoiseView(opacity: ZenoSemanticTokens.TextureIntensity.subtle)
             
-            // 2. Content
+            // 2. Content with staggered animations
             VStack(spacing: 0) {
+                // Illustration Area
+                if let illustrationName = content.illustrationName,
+                   let url = Bundle.main.url(forResource: illustrationName, withExtension: "svg") {
+                    SVGView(contentsOf: url)
+                        .aspectRatio(contentMode: .fit)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: UIScreen.main.bounds.height * 0.42)
+                        .staggeredItem(index: 0, isVisible: contentVisible)
+                } else {
+                    // Placeholder space when no illustration
+                    Spacer()
+                        .frame(height: ZenoSemanticTokens.Space.xxl)
+                }
+                
                 Spacer()
                 
                 VStack(alignment: .leading, spacing: ZenoSemanticTokens.Space.md) {
+                    // Title - appears second
                     Text(content.title)
                         .font(ZenoTokens.Typography.displayXSmall)
                         .foregroundColor(ZenoSemanticTokens.Theme.foreground)
-                        .fixedSize(horizontal: false, vertical: true) // Allow wrapping
+                        .fixedSize(horizontal: false, vertical: true)
+                        .staggeredItem(index: 1, isVisible: contentVisible)
                     
+                    // Description - appears third
                     Text(content.description)
                         .font(ZenoTokens.Typography.bodyLarge)
                         .foregroundColor(ZenoSemanticTokens.Theme.mutedForeground)
                         .fixedSize(horizontal: false, vertical: true)
                         .padding(.bottom, ZenoSemanticTokens.Space.xl)
+                        .staggeredItem(index: 2, isVisible: contentVisible)
                 }
                 .padding(.horizontal, ZenoSemanticTokens.Space.lg)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 
-                // 3. CTA
+                // 3. CTA - appears last with slight delay
                 ActionButton("Next", variant: .primary, action: onNext)
-                    // No horizontal padding for full width if desired, 
-                    // but usually "No border radius" implies it might span full width or sit at bottom.
-                    // The user said "CTA (no border radius for the priamry cta) will only be next".
-                    // And "followed by the CTA in the bottom". 
-                    // I'll assume full width at the bottom or just a block at bottom.
-                    // Let's make it full width attached to bottom safe area? 
-                    // "No border radius" strongly suggests edge-to-edge or a rectangular block.
-                    // I will apply padding horizontal to 0 if it's edge to edge, or standard padding if it's a block.
-                    // Let's try edge-to-edge for the "no radius" look, or just a sharp rectangle with padding.
-                    // "CTA ... will only be next ... bottom".
-                    // I'll add padding around it for now to be safe, but keep radius 0.
                     .padding(.horizontal, ZenoSemanticTokens.Space.lg)
                     .padding(.bottom, ZenoSemanticTokens.Space.lg)
+                    .staggeredItem(index: 3, isVisible: contentVisible)
             }
+        }
+        .onAppear {
+            // Trigger staggered animation when view appears
+            triggerContentAnimation()
+        }
+    }
+    
+    private func triggerContentAnimation() {
+        // Small delay before starting animations for smoother page transition
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            contentVisible = true
         }
     }
 }
@@ -78,10 +91,10 @@ struct ExplainerView: View {
 #Preview {
     ExplainerView(
         content: ExplainerContent(
-            title: "Dopamine Trap",
-            description: "We spend hours on our phones because they are designed to be addictive."
+            title: "The Dopamine Trap",
+            description: "We spend hours on our phones because they are designed to be addictive.",
+            illustrationName: "zen-svg-1"
         ),
         onNext: {}
     )
 }
-

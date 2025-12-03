@@ -2,6 +2,7 @@ import SwiftUI
 
 struct UsageEstimateView: View {
     let onNext: (Int) -> Void // Passes back estimated hours
+    @State private var contentVisible = false
     
     private let options = [
         (text: "Under 1 hour", value: 1),
@@ -24,20 +25,22 @@ struct UsageEstimateView: View {
                         .font(ZenoTokens.Typography.labelLarge)
                         .foregroundColor(ZenoSemanticTokens.Theme.mutedForeground)
                         .frame(maxWidth: .infinity, alignment: .leading)
+                        .staggeredItem(index: 0, isVisible: contentVisible)
                     
                     Text("How much time do you think you spend on your phone daily?")
                         .font(ZenoTokens.Typography.titleMedium)
                         .foregroundColor(ZenoSemanticTokens.Theme.foreground)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .fixedSize(horizontal: false, vertical: true)
+                        .staggeredItem(index: 1, isVisible: contentVisible)
                 }
                 .padding(.horizontal, ZenoSemanticTokens.Space.lg)
                 .padding(.top, ZenoSemanticTokens.Space.xl)
                 
-                // Options List
+                // Options List with staggered animation
                 ScrollView {
                     VStack(spacing: ZenoSemanticTokens.Space.md) {
-                        ForEach(options, id: \.text) { option in
+                        ForEach(Array(options.enumerated()), id: \.element.text) { index, option in
                             Button(action: { onNext(option.value) }) {
                                 Text(option.text)
                                     .font(ZenoTokens.Typography.bodyLarge)
@@ -52,11 +55,22 @@ struct UsageEstimateView: View {
                                     )
                             }
                             .buttonStyle(.plain)
+                            // Start at index 2 since header takes 0 and 1
+                            .staggeredItem(index: index + 2, isVisible: contentVisible)
                         }
                     }
                     .padding(.horizontal, ZenoSemanticTokens.Space.lg)
                 }
             }
+        }
+        .onAppear {
+            triggerContentAnimation()
+        }
+    }
+    
+    private func triggerContentAnimation() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            contentVisible = true
         }
     }
 }
@@ -64,6 +78,7 @@ struct UsageEstimateView: View {
 struct UsageImpactView: View {
     let hours: Int
     let onNext: () -> Void
+    @State private var contentVisible = false
     
     var body: some View {
         ZStack {
@@ -75,15 +90,17 @@ struct UsageImpactView: View {
                 
                 VStack(alignment: .leading, spacing: ZenoSemanticTokens.Space.lg) {
                     
-                    // The Stat
+                    // The Stat - dramatic staggered reveal
                     VStack(alignment: .leading, spacing: ZenoSemanticTokens.Space.xs) {
                         Text("\(calculateDays()) days")
                             .font(ZenoTokens.Typography.displayXSmall)
-                            .foregroundColor(ZenoSemanticTokens.Theme.destructive) // Red color for impact
+                            .foregroundColor(ZenoSemanticTokens.Theme.destructive)
+                            .staggeredItem(index: 0, isVisible: contentVisible)
                         
                         Text("a year.")
                             .font(ZenoTokens.Typography.displayXSmall)
                             .foregroundColor(ZenoSemanticTokens.Theme.foreground)
+                            .staggeredItem(index: 1, isVisible: contentVisible)
                     }
                     
                     // The Reality Check
@@ -91,6 +108,7 @@ struct UsageImpactView: View {
                         .font(ZenoTokens.Typography.bodyLarge)
                         .foregroundColor(ZenoSemanticTokens.Theme.mutedForeground)
                         .fixedSize(horizontal: false, vertical: true)
+                        .staggeredItem(index: 2, isVisible: contentVisible)
                     
                     Callout(
                         icon: "clock.arrow.circlepath",
@@ -98,17 +116,27 @@ struct UsageImpactView: View {
                         variant: .info
                     )
                     .padding(.top, ZenoSemanticTokens.Space.sm)
+                    .staggeredItem(index: 3, isVisible: contentVisible)
                 }
                 .padding(.horizontal, ZenoSemanticTokens.Space.lg)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.bottom, ZenoSemanticTokens.Space.xl) // Spacing from CTA
-                
-                // No spacer here to keep it bottom-heavy
+                .padding(.bottom, ZenoSemanticTokens.Space.xl)
                 
                 ActionButton("Confront It", variant: .primary, action: onNext)
                     .padding(.horizontal, ZenoSemanticTokens.Space.lg)
                     .padding(.bottom, ZenoSemanticTokens.Space.lg)
+                    .staggeredItem(index: 4, isVisible: contentVisible)
             }
+        }
+        .onAppear {
+            triggerContentAnimation()
+        }
+    }
+    
+    private func triggerContentAnimation() {
+        // Slightly longer delay for dramatic effect on this impactful screen
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+            contentVisible = true
         }
     }
     

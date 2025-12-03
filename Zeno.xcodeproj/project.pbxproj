@@ -9,9 +9,8 @@
 /* Begin PBXBuildFile section */
 		279BCF0F2ED7B12100FAB2C9 /* ManagedSettings.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 279BCF0E2ED7B12100FAB2C9 /* ManagedSettings.framework */; };
 		279BCF112ED7B12200FAB2C9 /* ManagedSettingsUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 279BCF102ED7B12200FAB2C9 /* ManagedSettingsUI.framework */; };
-		279BCF192ED7B12200FAB2C9 /* ZenoShieldExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 279BCF0C2ED7B12100FAB2C9 /* ZenoShieldExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		279BCFBC2ED7BF1600FAB2C9 /* DeviceActivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 279BCFBB2ED7BF1600FAB2C9 /* DeviceActivity.framework */; };
-		279BCFC42ED7BF1600FAB2C9 /* ZenoDeviceMonitor.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 279BCFBA2ED7BF1600FAB2C9 /* ZenoDeviceMonitor.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		279BD1312EDE7EE400FAB2C9 /* SVGView in Frameworks */ = {isa = PBXBuildFile; productRef = 279BD1302EDE7EE400FAB2C9 /* SVGView */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -44,21 +43,6 @@
 			remoteInfo = ZenoDeviceMonitor;
 		};
 /* End PBXContainerItemProxy section */
-
-/* Begin PBXCopyFilesBuildPhase section */
-		279BCF1E2ED7B12200FAB2C9 /* Embed Foundation Extensions */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 13;
-			files = (
-				279BCF192ED7B12200FAB2C9 /* ZenoShieldExtension.appex in Embed Foundation Extensions */,
-				279BCFC42ED7BF1600FAB2C9 /* ZenoDeviceMonitor.appex in Embed Foundation Extensions */,
-			);
-			name = "Embed Foundation Extensions";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		279BC8CA2ED157E800FAB2C9 /* Zeno.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Zeno.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -116,6 +100,14 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
+				"Resources/SVGs/zen-svg-1/zen-svg-1-clouds.svg",
+				"Resources/SVGs/zen-svg-1/zen-svg-1-figure.svg",
+				"Resources/SVGs/zen-svg-1/zen-svg-1-ground.svg",
+				"Resources/SVGs/zen-svg-1/zen-svg-1-halo.svg",
+				"Resources/SVGs/zen-svg-1/zen-svg-1-palms.svg",
+				"Resources/SVGs/zen-svg-1/zen-svg-1-patterns.svg",
+				"Resources/SVGs/zen-svg-1/zen-svg-1-rays.svg",
+				"Resources/SVGs/zen-svg-1/zen-svg-1.svg",
 			);
 			target = 279BC8C92ED157E800FAB2C9 /* Zeno */;
 		};
@@ -179,6 +171,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				279BD1312EDE7EE400FAB2C9 /* SVGView in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -261,7 +254,6 @@
 				279BC8C62ED157E800FAB2C9 /* Sources */,
 				279BC8C72ED157E800FAB2C9 /* Frameworks */,
 				279BC8C82ED157E800FAB2C9 /* Resources */,
-				279BCF1E2ED7B12200FAB2C9 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
@@ -274,6 +266,7 @@
 			);
 			name = Zeno;
 			packageProductDependencies = (
+				279BD1302EDE7EE400FAB2C9 /* SVGView */,
 			);
 			productName = Zeno;
 			productReference = 279BC8CA2ED157E800FAB2C9 /* Zeno.app */;
@@ -407,6 +400,9 @@
 			);
 			mainGroup = 279BC8C12ED157E800FAB2C9;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				279BD12F2EDE7E7000FAB2C9 /* XCRemoteSwiftPackageReference "SVGView" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 279BC8CB2ED157E800FAB2C9 /* Products */;
 			projectDirPath = "";
@@ -972,6 +968,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		279BD12F2EDE7E7000FAB2C9 /* XCRemoteSwiftPackageReference "SVGView" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/exyte/SVGView";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.6;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		279BD1302EDE7EE400FAB2C9 /* SVGView */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 279BD12F2EDE7E7000FAB2C9 /* XCRemoteSwiftPackageReference "SVGView" */;
+			productName = SVGView;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 279BC8C22ED157E800FAB2C9 /* Project object */;
 }

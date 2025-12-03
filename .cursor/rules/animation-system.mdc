@@ -1,168 +1,284 @@
+---
+alwaysApply: true
+---
 # Zeno Animation System
 
-> Based on [Cash App Motion Foundations](https://design.cash.app/motion) adapted for Zeno's stoic yet vibrant aesthetic.
+> Inspired by [Cash App Motion Principles](https://design.cash.app/motion) and Apple Human Interface Guidelines.
 
-## Core Principles
+## Core Philosophy
 
-### 1. Purpose Over Polish
-Every animation must have a **reason**:
-- **Feedback**: Confirm user actions (button press, selection)
-- **Orientation**: Help users understand spatial relationships
-- **Focus**: Direct attention to important changes
-- **Delight**: Reward moments (unlocking, earning credits)
+Motion in Zeno is **purposeful, fast, and invisible**. Great animation feels like the interface is alive, not that it's showing off. Every animation must pass the "why" test — if you can't explain its purpose, remove it.
 
-If an animation doesn't serve one of these purposes, **don't add it**.
+### The Four Purposes of Motion
+1. **Feedback** — Confirms user action was received
+2. **Orientation** — Shows where things came from or went to
+3. **Focus** — Directs attention to what matters
+4. **Continuity** — Maintains context during transitions
 
-### 2. The Zeno Feel
-Zeno is **heavy, deliberate, and mechanical** — not bouncy or playful.
-- Prefer **ease-out** curves (fast start, slow settle)
-- Avoid excessive spring bounce
-- Use **opacity + scale** together for smooth transitions
-- Motion should feel like **well-oiled machinery**, not rubber bands
+---
+
+## Golden Rules
+
+### 1. Backgrounds Never Animate
+Keep backgrounds stable. Only animate content (text, cards, buttons). Animating backgrounds causes jarring "flashes" and stuttering.
+
+```swift
+// ✅ Good: Stable background, animated content
+ZStack {
+    StableBackground()  // Never transitions
+    ContentView()       // This animates
+        .transition(.opacity)
+}
+
+// ❌ Bad: Entire view transitions including background
+SomeView()
+    .transition(.slide)  // Background slides too = stuttering
+```
+
+### 2. Fast by Default
+Users should never wait for animations. If they notice the animation duration, it's too slow.
+
+| Context | Duration | Token |
+|---------|----------|-------|
+| Micro-feedback (tap, toggle) | 150ms | `Duration.snap` |
+| UI transitions (sheets, navigation) | 300ms | `Duration.fast` |
+| Emphasis (success, error) | 500ms | `Duration.medium` |
+| Ceremonial (unlock, reward) | 800ms | `Duration.slow` |
+
+### 3. Stagger, Don't Swarm
+When multiple elements enter, stagger them. Never have everything appear at once — it overwhelms the eye.
+
+```swift
+// ✅ Good: Staggered entrance
+Title.staggeredItem(index: 0, isVisible: visible)
+Description.staggeredItem(index: 1, isVisible: visible)
+Button.staggeredItem(index: 2, isVisible: visible)
+
+// ❌ Bad: Everything fades in together
+VStack { ... }
+    .opacity(visible ? 1 : 0)
+```
+
+### 4. Combine Transforms for Polish
+Single-property animations feel mechanical. Combine 2-3 properties for fluid feel.
+
+```swift
+// ✅ Polished: Opacity + slight offset
+.opacity(visible ? 1 : 0)
+.offset(y: visible ? 0 : 8)
+
+// ❌ Basic: Just opacity
+.opacity(visible ? 1 : 0)
+```
 
 ---
 
 ## Duration Tokens
 
-Use `ZenoSemanticTokens.Motion.Duration.*` — never hardcode values.
+**Always use tokens. Never hardcode values.**
 
-| Token | Value | Use Case |
-|-------|-------|----------|
-| `snap` | 0.15s | Instant feedback (taps, toggles, selections) |
-| `fast` | 0.3s | Standard UI transitions (sheets, chip selection) |
-| `medium` | 0.5s | Heavier elements (cards expanding, modals) |
-| `slow` | 0.8s | Ceremonial moments (unlock animation, rewards) |
-| `breathe` | 2.0s | Ambient loops (pulsing dots, background effects) |
+```swift
+enum Duration {
+    static let snap: Double = 0.15     // Instant feedback
+    static let fast: Double = 0.3      // Standard transitions
+    static let medium: Double = 0.5    // Emphasis moments
+    static let slow: Double = 0.8      // Ceremonial (rewards)
+    static let breathe: Double = 2.0   // Ambient loops
+}
+```
+
+### When to Use Each
+
+| Duration | Use Case | Example |
+|----------|----------|---------|
+| `snap` | Immediate response | Button press, toggle, selection |
+| `fast` | State changes | Sheet open, chip select, navigation |
+| `medium` | Draw attention | Card expand, success state |
+| `slow` | Celebrate | Unlock animation, achievement |
+| `breathe` | Ambient | Pulsing dot, shimmer loops |
 
 ---
 
 ## Easing Curves
 
-### Standard Eases (from Tokens)
+### Available Curves
+
 ```swift
-// Mechanical ease - starts fast, hits a wall, settles
+// Mechanical: Starts fast, settles decisively
 ZenoSemanticTokens.Motion.Ease.mechanical
+// Use for: Primary actions, unlock, session start
 
-// Liquid ease - smooth, water-like flow  
+// Liquid: Smooth, continuous flow
 ZenoSemanticTokens.Motion.Ease.liquid
+// Use for: Progress bars, shimmer, continuous motion
 
-// Standard ease - default UI transitions
+// Standard: Default ease-in-out
 ZenoSemanticTokens.Motion.Ease.standard
+// Use for: Most UI transitions
+
+// Smooth: iOS 17+ natural curve (preferred)
+.smooth(duration: 0.4)
+// Use for: Page transitions, content changes
 ```
 
-### When to Use Each
-- **mechanical**: Primary actions (unshield button, session start)
-- **liquid**: Continuous/looping animations (shimmer, progress rings)
-- **standard**: Everything else (navigation, chips, accordions)
+### Easing Decision Tree
+1. Is it a primary action? → `mechanical`
+2. Is it continuous/looping? → `liquid`
+3. Is it a page transition? → `.smooth()`
+4. Everything else → `standard`
 
 ---
 
-## Animation Patterns
+## Screen Transitions
 
-### Pattern 1: Feedback (Snap)
-For immediate response to user input.
+### Content-Only Transitions (Recommended)
+For switching between screens with the same background:
+
 ```swift
-.animation(.easeOut(duration: ZenoSemanticTokens.Motion.Duration.snap), value: isSelected)
+// Subtle fade + lift
+.asymmetric(
+    insertion: .opacity.combined(with: .offset(y: 8)),
+    removal: .opacity.combined(with: .offset(y: -4))
+)
 ```
 
-### Pattern 2: Transition (Fast)
-For state changes and navigation.
+### Full Page Transitions
+When background must change:
+
 ```swift
-.animation(.easeInOut(duration: ZenoSemanticTokens.Motion.Duration.fast), value: showContent)
+// Forward navigation
+OnboardingTransition.slideForward
+
+// Backward navigation
+OnboardingTransition.slideBackward
+
+// Dramatic content swap
+OnboardingTransition.crossfadeScale
 ```
 
-### Pattern 3: Emphasis (Medium)
-For drawing attention to important changes.
-```swift
-.animation(ZenoSemanticTokens.Motion.Ease.mechanical, value: isUnlocked)
-```
+---
 
-### Pattern 4: Ceremony (Slow)
-For rewarding moments that deserve celebration.
-```swift
-.animation(ZenoSemanticTokens.Motion.Ease.liquid, value: sessionStarted)
-```
+## Staggered Animations
 
-### Pattern 5: Ambient (Breathe)
-For continuous background effects.
-```swift
-.animation(.easeInOut(duration: ZenoSemanticTokens.Motion.Duration.breathe).repeatForever(autoreverses: true), value: isPulsing)
-```
+### Configuration (Adjustable)
 
-### Pattern 6: Screen Transitions
-For fullscreen view changes. Use `.asymmetric` for different enter/exit animations.
 ```swift
-// Shield lowering/raising metaphor — slides from bottom
-private var sessionTransition: AnyTransition {
-    .asymmetric(
-        insertion: .move(edge: .bottom).combined(with: .opacity),
-        removal: .move(edge: .bottom).combined(with: .opacity)
-    )
+enum StaggerConfig {
+    static let initialDelay: Double = 0.1      // Before first item
+    static let staggerInterval: Double = 0.08  // Between items
+    static let elementDuration: Double = 0.5   // Each item's animation
+    static let slideOffset: CGFloat = 24       // Vertical movement
+    static let springResponse: Double = 0.6    // Spring snappiness
+    static let springDamping: Double = 0.85    // Bounce (1 = none)
 }
-
-// Apply with mechanical easing for deliberate feel
-.transition(sessionTransition)
-.animation(ZenoSemanticTokens.Motion.Ease.mechanical, value: isShowing)
 ```
 
-**Transition Options by Metaphor:**
-| Metaphor | Transition | Use Case |
-|----------|------------|----------|
-| Shield lowering | `.move(edge: .bottom)` | Session start/end |
-| Reveal | `.scale.combined(with: .opacity)` | Modals, cards |
-| Slide over | `.move(edge: .trailing)` | Navigation push |
-| Fade | `.opacity` | Subtle state changes |
+### Usage
 
----
-
-## Reusable Animation Modifiers
-
-Located in `Zeno/DesignSystem/Animations/`
-
-### Available Modifiers
-| Modifier | Description |
-|----------|-------------|
-| `.zenoShimmer()` | Animated gradient sweep for loading/active states |
-| `.zenoPulse()` | Subtle scale pulse for "alive" indicators |
-| `.zenoFadeIn()` | Opacity entrance animation |
-| `.zenoScaleIn()` | Scale + opacity entrance animation |
-
-### Usage Example
 ```swift
-Text("Zeno is shielding your apps")
-    .zenoShimmer(isActive: true)
+// Automatic index-based delay
+Title.staggeredItem(index: 0, isVisible: contentVisible)
+Body.staggeredItem(index: 1, isVisible: contentVisible)
+CTA.staggeredItem(index: 2, isVisible: contentVisible)
 
-Circle()
-    .zenoPulse(isActive: viewModel.isBlocking)
+// Manual control
+View.slideUpFade(
+    isVisible: true,
+    delay: 0.2,
+    duration: 0.5,
+    offset: 20
+)
 ```
 
 ---
 
-## Do's and Don'ts
+## Reusable Modifiers
 
-### ✅ Do
-- Use tokens for all duration/easing values
-- Use `ZenoTokens.ColorBase.*` for animation colors (e.g., `White._75` for shimmer)
-- Combine opacity + scale for smoother feel
-- Test on device (simulators lie about performance)
-- Add `withAnimation {}` for state changes that need animation
-- Use `.animation(_:value:)` modifier for reactive animations
+Located in `Zeno/DesignSystem/Animations/ZenoAnimationModifiers.swift`
 
-### ❌ Don't
-- Hardcode duration values (`0.3` instead of `Duration.fast`)
-- Hardcode colors (`.white` instead of `ZenoTokens.ColorBase.White._100`)
-- Use bouncy springs (not the Zeno vibe)
-- Animate everything — restraint is key
-- Block user interaction during animations
-- Use `.animation(_:)` without a value (deprecated)
+| Modifier | Description | Use Case |
+|----------|-------------|----------|
+| `.shimmer()` | Gradient sweep | Active/loading states |
+| `.pulse()` | Scale breathing | Status indicators |
+| `.staggeredItem(index:)` | Delayed entrance | Lists, onboarding |
+| `.slideUpFade()` | Opacity + offset | Content entrance |
+| `.blurFade()` | Blur + opacity | Dreamy transitions |
+| `.reveal(from:)` | Mask wipe | Dramatic reveals |
+| `.glow()` | Neon shadow | Emphasis |
+
+---
+
+## Anti-Patterns
+
+### ❌ Don't: Animate Backgrounds
+```swift
+// Causes stuttering
+FullScreenView()
+    .transition(.slide)
+```
+
+### ❌ Don't: Use Bouncy Springs
+```swift
+// Not the Zeno vibe
+.spring(response: 0.5, dampingFraction: 0.5)  // Too bouncy
+```
+
+### ❌ Don't: Hardcode Values
+```swift
+// Unmaintainable
+.animation(.easeOut(duration: 0.3), value: x)
+
+// ✅ Use tokens
+.animation(.easeOut(duration: ZenoSemanticTokens.Motion.Duration.fast), value: x)
+```
+
+### ❌ Don't: Animate Everything
+```swift
+// Overwhelming
+VStack {
+    Text("Title").shimmer()
+    Text("Body").pulse()
+    Button().shimmer()
+}
+```
+
+### ❌ Don't: Block Interaction
+```swift
+// Users hate waiting
+.disabled(isAnimating)
+```
 
 ---
 
 ## Implementation Checklist
 
-Before adding any animation:
-1. [ ] What **purpose** does this serve? (Feedback/Orientation/Focus/Delight)
-2. [ ] Which **duration token** is appropriate?
-3. [ ] Which **easing curve** matches the intent?
-4. [ ] Can I use an **existing modifier** from `Animations/`?
-5. [ ] Does it feel **mechanical and deliberate** (not bouncy)?
+Before adding animation:
+- [ ] What **purpose** does this serve? (Feedback/Orientation/Focus/Continuity)
+- [ ] Is the background **stable**?
+- [ ] Am I using **duration tokens**?
+- [ ] Does it feel **fast** enough?
+- [ ] Can I use an **existing modifier**?
+- [ ] Is it **subtle**, not distracting?
+- [ ] Does it work on **device** (not just simulator)?
+
+---
+
+## Quick Reference
+
+```swift
+// Page transition (content only)
+.animation(.smooth(duration: 0.4), value: step)
+
+// Staggered content
+.staggeredItem(index: 0, isVisible: visible)
+
+// Feedback (instant)
+.animation(.easeOut(duration: Duration.snap), value: isSelected)
+
+// Emphasis
+.animation(Motion.Ease.mechanical, value: isUnlocked)
+
+// Ambient loop
+.animation(.easeInOut(duration: Duration.breathe)
+    .repeatForever(autoreverses: true), value: isPulsing)
+```

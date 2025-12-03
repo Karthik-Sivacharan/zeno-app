@@ -6,6 +6,7 @@ struct AppPickerView: View {
     
     @State private var viewModel = AppPickerViewModel()
     @State private var isPickerPresented = false
+    @State private var contentVisible = false
     
     var body: some View {
         ZStack {
@@ -21,12 +22,14 @@ struct AppPickerView: View {
                         .font(ZenoTokens.Typography.titleMedium)
                         .foregroundColor(ZenoSemanticTokens.Theme.foreground)
                         .frame(maxWidth: .infinity, alignment: .leading)
+                        .staggeredItem(index: 0, isVisible: contentVisible)
                     
                     Text("Choose the apps that distract you the most. Zeno will block them until you earn access.")
                         .font(ZenoTokens.Typography.bodyLarge)
                         .foregroundColor(ZenoSemanticTokens.Theme.mutedForeground)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .fixedSize(horizontal: false, vertical: true)
+                        .staggeredItem(index: 1, isVisible: contentVisible)
                 }
                 .padding(.horizontal, ZenoSemanticTokens.Space.lg)
                 
@@ -39,6 +42,7 @@ struct AppPickerView: View {
                 )
                 .padding(.horizontal, ZenoSemanticTokens.Space.lg)
                 .familyActivityPicker(isPresented: $isPickerPresented, selection: $viewModel.selection)
+                .staggeredItem(index: 2, isVisible: contentVisible)
                 
                 Spacer()
                 
@@ -48,7 +52,17 @@ struct AppPickerView: View {
                     .opacity(viewModel.selectedCount == 0 ? 0.5 : 1.0)
                     .padding(.horizontal, ZenoSemanticTokens.Space.lg)
                     .padding(.bottom, ZenoSemanticTokens.Space.lg)
+                    .staggeredItem(index: 3, isVisible: contentVisible)
             }
+        }
+        .onAppear {
+            triggerContentAnimation()
+        }
+    }
+    
+    private func triggerContentAnimation() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            contentVisible = true
         }
     }
     

@@ -107,13 +107,6 @@ This roadmap sequences work into small, testable phases and emphasizes vertical 
 - Vertical slice:
   - ✅ **User with 0 credits taps "Walk Now", walks around, sees minutes tick up, dismisses, and can now unlock apps.**
 
-#### Nice-to-Haves (Future)
-- 🎉 **Haptic feedback** when earning a new minute.
-- 📱 **Keep screen awake** during Walk Now mode (`UIApplication.shared.isIdleTimerDisabled`).
-- 🏃 **Animated walking icon** that bounces with step updates.
-- 🎯 **Goal setting** ("I want to earn 5 more minutes" → shows progress to goal).
-- 🔔 **Notification** when user has earned enough to unlock their preferred duration.
-
 ### Phase 6 – Unblock Flow (Credits-Based) ✅ COMPLETE
 
 - Implement:
@@ -125,10 +118,12 @@ This roadmap sequences work into small, testable phases and emphasizes vertical 
   - ✅ **Early re-lock with credit refund (unused time returned to credits).**
   - ✅ **Handling session expiration and auto-relock.**
   - ✅ **OS-level DeviceActivityMonitor for guaranteed reblocking (works even when app is closed).**
+  - ✅ **Notification blocking for shielded apps (no distractions from blocked apps).**
 - Vertical slice:
   - ✅ **You can spend credits to unlock apps for X minutes and see credits decrease accordingly.**
   - ✅ **You can re-lock early and get unused time refunded.**
   - ✅ **Apps automatically re-lock when timer expires, even if Zeno is closed.**
+  - ✅ **Blocked apps don't send notifications – complete silence until unlocked.**
 
 ### Phase 7 – Polish, Feedback, and Personal Testing ❌ NOT STARTED
 
@@ -137,6 +132,44 @@ This roadmap sequences work into small, testable phases and emphasizes vertical 
   - ❌ **Visual design alignment.**
 - Personal test:
   - ❌ **Run Zeno on your own device for multiple days.**
+
+### Phase 7.5 – Delight & Micro-Interactions ❌ NOT STARTED
+
+> **Purpose:** Elevate Zeno from functional to delightful. These touches make the app feel alive and rewarding.
+
+- **Haptics:**
+  - ❌ **Success haptic** when unlocking apps (`.success` feedback).
+  - ❌ **Soft tick haptic** when earning each new minute in Walk Now.
+  - ❌ **Warning haptic** when session is about to expire (1 min warning).
+  - ❌ **Impact haptic** on button presses (subtle `.light` impact).
+
+- **Animations:**
+  - ❌ **Step counter tick-up animation** (numbers animate to new value).
+  - ❌ **Credit balance pulse** when credits are earned.
+  - ❌ **Progress bar smooth fill** with spring animation.
+  - ❌ **Walking icon bounce** that animates with step updates in Walk Now.
+  - ❌ **Confetti/celebration** when user earns significant credits (e.g., 10+ minutes).
+  - ❌ **Card entrance animations** (staggered fade-in on Home).
+  - ❌ **Button press scale animation** (micro-interaction on tap).
+  - ❌ **Timer countdown pulse** as time runs low (last 60 seconds).
+
+- **Icons & Visual Polish:**
+  - ❌ **Custom SF Symbol compositions** for key actions (walk, lock, unlock).
+  - ❌ **Animated app icon** (if feasible) or polished static icon.
+  - ❌ **Empty state illustrations** (friendly graphics for no-data states).
+  - ❌ **Status indicator animations** (locked/unlocked state transitions).
+
+- **Sound (Optional):**
+  - ❌ **Subtle unlock sound** (optional, user-configurable).
+  - ❌ **Achievement chime** when hitting milestones.
+
+- **Screen & UX Enhancements:**
+  - ❌ **Keep screen awake** during Walk Now (`UIApplication.shared.isIdleTimerDisabled`).
+  - ❌ **Pull-to-refresh** with custom animation on Home.
+  - ❌ **Skeleton loading states** instead of spinners.
+
+- Vertical slice:
+  - ❌ **Using Zeno feels rewarding and tactile – every interaction has feedback.**
 
 ### Post-MVP / Future Improvements 🔮
 
@@ -166,20 +199,24 @@ This roadmap sequences work into small, testable phases and emphasizes vertical 
 
 **Immediate next steps:**
 
-1. **Phase 7: Polish & Personal Testing**
-   - Refine microcopy and messaging.
-   - Visual design alignment.
-   - Run Zeno on device for multiple days.
+1. **Phase 5 (Finish):** Edge states + midnight credit reset
+2. **Phase 7: Polish & Personal Testing**
+   - Refine microcopy and messaging
+   - Visual design alignment
+   - Run Zeno on device for multiple days
+3. **Phase 7.5: Delight & Micro-Interactions**
+   - Haptics (unlock success, step ticks, button feedback)
+   - Animations (counter tick-up, progress bar springs, card entrances)
+   - Icons & visual polish (empty state illustrations, status transitions)
+   - Screen enhancements (keep-awake in Walk Now, pull-to-refresh)
 
-2. **Phase 4.5: Blocking Schedule** (Optional)
-   - Add a new onboarding step for users to configure blocking hours.
-   - Implement `BlockingScheduleStore` for persisting schedule data.
-   - Wire up `AppBlockingService` to respect the schedule.
+**Optional/Deferred:**
 
-**Nice-to-Haves (Future Enhancements):**
+- **Phase 4.5: Blocking Schedule** – Time-of-day automation (can add post-launch)
 
-- 🎉 **Haptic feedback** when earning a minute in Walk Now.
-- 📱 **Keep screen awake** during Walk Now mode.
-- 🏃 **Animated walking icon** that bounces with step updates.
+**Future Enhancements (Post-MVP):**
+
 - 🎯 **Goal setting** ("I want to earn X minutes" with progress).
-- 🔔 **Notification** when enough credits earned.
+- 🔔 **Notifications** when enough credits earned.
+- 🏝️ **Dynamic Island Live Activity** for active sessions.
+- 📊 **Enhanced App Reporting** with usage stats.

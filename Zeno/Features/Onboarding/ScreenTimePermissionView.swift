@@ -3,6 +3,7 @@ import FamilyControls
 
 struct ScreenTimePermissionView: View {
     @State private var viewModel = ScreenTimePermissionViewModel()
+    @State private var contentVisible = false
     let onNext: () -> Void
     
     var body: some View {
@@ -33,12 +34,14 @@ struct ScreenTimePermissionView: View {
                         .font(ZenoTokens.Typography.displayXSmall)
                         .foregroundColor(ZenoSemanticTokens.Theme.foreground)
                         .fixedSize(horizontal: false, vertical: true)
+                        .staggeredItem(index: 0, isVisible: contentVisible)
                     
                     // Description
                     Text("Let's take action. Zeno needs access to block distracting apps and help you break the cycle.")
                         .font(ZenoTokens.Typography.bodyLarge)
                         .foregroundColor(ZenoSemanticTokens.Theme.mutedForeground)
                         .fixedSize(horizontal: false, vertical: true)
+                        .staggeredItem(index: 1, isVisible: contentVisible)
                     
                     // Security Callout (Using Component)
                     Callout(
@@ -47,6 +50,7 @@ struct ScreenTimePermissionView: View {
                         variant: .info
                     )
                     .padding(.top, ZenoSemanticTokens.Space.sm)
+                    .staggeredItem(index: 2, isVisible: contentVisible)
                 }
                 .padding(.horizontal, ZenoSemanticTokens.Space.lg)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -56,10 +60,20 @@ struct ScreenTimePermissionView: View {
                 ActionButton(ctaText, variant: .primary, isLoading: viewModel.isRequesting, action: handleAction)
                     .padding(.horizontal, ZenoSemanticTokens.Space.lg)
                     .padding(.bottom, ZenoSemanticTokens.Space.lg)
+                    .staggeredItem(index: 3, isVisible: contentVisible)
             }
         }
         .task {
             await viewModel.checkStatus()
+        }
+        .onAppear {
+            triggerContentAnimation()
+        }
+    }
+    
+    private func triggerContentAnimation() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            contentVisible = true
         }
     }
     

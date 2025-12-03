@@ -2,6 +2,7 @@ import SwiftUI
 
 struct HealthPermissionView: View {
     @State private var viewModel = HealthPermissionViewModel()
+    @State private var contentVisible = false
     let onNext: () -> Void
     
     var body: some View {
@@ -32,18 +33,31 @@ struct HealthPermissionView: View {
                     if case .idle = viewModel.state {
                         educationVisual
                             .padding(.bottom, ZenoSemanticTokens.Space.lg)
-                            .transition(.opacity.combined(with: .move(edge: .top)))
+                            .staggeredItem(index: 0, isVisible: contentVisible)
                     }
                     
                     titleView
+                        .staggeredItem(index: 1, isVisible: contentVisible)
+                    
                     descriptionView
+                        .staggeredItem(index: 2, isVisible: contentVisible)
                 }
                 .padding(.horizontal, ZenoSemanticTokens.Space.lg)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.bottom, ZenoSemanticTokens.Space.xl)
                 
                 ctaButton
+                    .staggeredItem(index: 3, isVisible: contentVisible)
             }
+        }
+        .onAppear {
+            triggerContentAnimation()
+        }
+    }
+    
+    private func triggerContentAnimation() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            contentVisible = true
         }
     }
     
