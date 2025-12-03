@@ -52,8 +52,7 @@ class AppBlockingService {
     // MARK: - Public Methods
     
     /// Blocks all apps/categories from the stored ManagedAppsConfig selection.
-    /// This applies a shield that prevents the user from opening these apps,
-    /// and also blocks notifications from these apps for complete silence.
+    /// This applies a shield that prevents the user from opening these apps.
     func blockApps() {
         let config = appsStore.loadConfig()
         let selection = config.selection
@@ -62,10 +61,6 @@ class AppBlockingService {
         store.shield.applications = selection.applicationTokens
         store.shield.applicationCategories = .specific(selection.categoryTokens)
         store.shield.webDomains = selection.webDomainTokens
-        
-        // Block notifications from shielded apps (no distractions)
-        store.shield.applicationNotifications = selection.applicationTokens
-        store.shield.webDomainNotifications = selection.webDomainTokens
         
         // Stop any active monitoring
         stopActivityMonitoring()
@@ -96,10 +91,6 @@ class AppBlockingService {
         store.shield.applications = nil
         store.shield.applicationCategories = nil
         store.shield.webDomains = nil
-        
-        // Allow notifications again during unlock session
-        store.shield.applicationNotifications = nil
-        store.shield.webDomainNotifications = nil
         
         isBlocking = false
         currentUnblockDuration = minutes

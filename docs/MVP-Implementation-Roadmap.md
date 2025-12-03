@@ -118,12 +118,10 @@ This roadmap sequences work into small, testable phases and emphasizes vertical 
   - ✅ **Early re-lock with credit refund (unused time returned to credits).**
   - ✅ **Handling session expiration and auto-relock.**
   - ✅ **OS-level DeviceActivityMonitor for guaranteed reblocking (works even when app is closed).**
-  - ✅ **Notification blocking for shielded apps (no distractions from blocked apps).**
 - Vertical slice:
   - ✅ **You can spend credits to unlock apps for X minutes and see credits decrease accordingly.**
   - ✅ **You can re-lock early and get unused time refunded.**
   - ✅ **Apps automatically re-lock when timer expires, even if Zeno is closed.**
-  - ✅ **Blocked apps don't send notifications – complete silence until unlocked.**
 
 ### Phase 7 – Polish, Feedback, and Personal Testing ❌ NOT STARTED
 
@@ -172,6 +170,15 @@ This roadmap sequences work into small, testable phases and emphasizes vertical 
   - ❌ **Using Zeno feels rewarding and tactile – every interaction has feedback.**
 
 ### Post-MVP / Future Improvements 🔮
+
+- **Notification Blocking for Shielded Apps:**
+  - Screen Time's `ShieldSettings` only blocks app access, not notifications.
+  - Explore alternative approaches:
+    - Focus Filters (iOS 16+) — may require user to set up Focus mode.
+    - Guide users to disable notifications manually in Settings.
+    - Investigate if `ManagedSettingsStore` has other notification APIs.
+  - Goal: Complete silence from blocked apps (no distracting notifications).
+  - Optional: Add user toggle "Block notifications from managed apps" in settings.
 
 - **Dynamic Island Live Activity:**
   - Show live countdown timer in Dynamic Island when apps are unblocked.

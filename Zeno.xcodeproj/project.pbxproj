@@ -11,6 +11,8 @@
 		279BCF112ED7B12200FAB2C9 /* ManagedSettingsUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 279BCF102ED7B12200FAB2C9 /* ManagedSettingsUI.framework */; };
 		279BCFBC2ED7BF1600FAB2C9 /* DeviceActivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 279BCFBB2ED7BF1600FAB2C9 /* DeviceActivity.framework */; };
 		279BD1312EDE7EE400FAB2C9 /* SVGView in Frameworks */ = {isa = PBXBuildFile; productRef = 279BD1302EDE7EE400FAB2C9 /* SVGView */; };
+		279BD1622EDFCB0000FAB2C9 /* ZenoShieldExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 279BCF0C2ED7B12100FAB2C9 /* ZenoShieldExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		279BD1632EDFCB0000FAB2C9 /* ZenoDeviceMonitor.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 279BCFBA2ED7BF1600FAB2C9 /* ZenoDeviceMonitor.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -43,6 +45,21 @@
 			remoteInfo = ZenoDeviceMonitor;
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		279BD1612EDFCA8500FAB2C9 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				279BD1622EDFCB0000FAB2C9 /* ZenoShieldExtension.appex in Embed App Extensions */,
+				279BD1632EDFCB0000FAB2C9 /* ZenoDeviceMonitor.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		279BC8CA2ED157E800FAB2C9 /* Zeno.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Zeno.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -254,6 +271,7 @@
 				279BC8C62ED157E800FAB2C9 /* Sources */,
 				279BC8C72ED157E800FAB2C9 /* Frameworks */,
 				279BC8C82ED157E800FAB2C9 /* Resources */,
+				279BD1612EDFCA8500FAB2C9 /* Embed App Extensions */,
 			);
 			buildRules = (
 			);

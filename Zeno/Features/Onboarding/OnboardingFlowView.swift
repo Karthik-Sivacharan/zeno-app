@@ -189,23 +189,17 @@ private struct OnboardingContentView: View {
             // Found SVG in bundle - use animated version
             AnimatedIllustration(url: url)
         } else {
-            // Fallback: use Asset Catalog image with simple animation
-            AssetCatalogIllustration(name: "OnboardingIllustration")
+            // Fallback: simple ambient glow placeholder when SVG not found
+            IllustrationPlaceholder()
         }
     }
 }
 
-// MARK: - Asset Catalog Illustration (Fallback)
+// MARK: - Illustration Placeholder (Fallback)
 
-/// Fallback when SVG files aren't in the bundle - uses Asset Catalog with simple animation
-private struct AssetCatalogIllustration: View {
-    let name: String
-    
+/// Minimal fallback when SVG files aren't in the bundle - shows ambient glow
+private struct IllustrationPlaceholder: View {
     private enum Config {
-        static let breatheScale: CGFloat = 0.008
-        static let breatheSpeed: Double = 0.5
-        static let floatOffset: CGFloat = 3
-        static let floatSpeed: Double = 0.35
         static let glowMin: Double = 0.15
         static let glowMax: Double = 0.3
         static let glowSpeed: Double = 0.4
@@ -214,41 +208,25 @@ private struct AssetCatalogIllustration: View {
     var body: some View {
         TimelineView(.animation) { timeline in
             let time = timeline.date.timeIntervalSinceReferenceDate
-            
-            let breathePhase = sin(time * Config.breatheSpeed * .pi * 2)
-            let floatPhase = sin(time * Config.floatSpeed * .pi * 2)
             let glowPhase = sin(time * Config.glowSpeed * .pi * 2)
-            
-            let scale = 1.0 + (Config.breatheScale * breathePhase)
-            let yOffset = Config.floatOffset * floatPhase
             let glowOpacity = Config.glowMin + (Config.glowMax - Config.glowMin) * ((glowPhase + 1) / 2)
             
-            ZStack {
-                // Ambient glow
-                Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: [
-                                ZenoTokens.ColorBase.Acid._400.opacity(glowOpacity),
-                                ZenoTokens.ColorBase.Sand._500.opacity(glowOpacity * 0.4),
-                                Color.clear
-                            ],
-                            center: .center,
-                            startRadius: 20,
-                            endRadius: 180
-                        )
+            // Ambient glow only - no broken image reference
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [
+                            ZenoTokens.ColorBase.Acid._400.opacity(glowOpacity),
+                            ZenoTokens.ColorBase.Sand._500.opacity(glowOpacity * 0.4),
+                            Color.clear
+                        ],
+                        center: .center,
+                        startRadius: 20,
+                        endRadius: 180
                     )
-                    .frame(width: 320, height: 320)
-                    .blur(radius: 50)
-                    .offset(y: -70)
-                
-                // Image from Asset Catalog
-                Image(name)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .scaleEffect(scale)
-                    .offset(y: yOffset)
-            }
+                )
+                .frame(width: 320, height: 320)
+                .blur(radius: 50)
         }
     }
 }

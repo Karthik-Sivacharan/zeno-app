@@ -67,10 +67,6 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
         store.shield.applicationCategories = .specific(selection.categoryTokens)
         store.shield.webDomains = selection.webDomainTokens
         
-        // Block notifications from shielded apps (no distractions)
-        store.shield.applicationNotifications = selection.applicationTokens
-        store.shield.webDomainNotifications = selection.webDomainTokens
-        
         // Update shared state
         sharedDefaults.set(true, forKey: "zeno.shared.isBlocking")
         sharedDefaults.removeObject(forKey: "zeno.shared.unlockExpiresAt")
