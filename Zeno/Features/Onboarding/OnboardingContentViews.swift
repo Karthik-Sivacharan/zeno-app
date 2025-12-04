@@ -339,48 +339,112 @@ struct AppPickerContent: View {
     @State private var contentVisible = false
     
     var body: some View {
-        VStack(spacing: ZenoSemanticTokens.Space.lg) {
-            Spacer()
-            
-            VStack(spacing: ZenoSemanticTokens.Space.md) {
-                Text("Select Your Apps")
-                    .font(ZenoTokens.Typography.titleMedium)
-                    .foregroundColor(ZenoSemanticTokens.Theme.foreground)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .staggeredItem(index: 0, isVisible: contentVisible)
-                
-                Text("Choose the apps that distract you the most. Zeno will block them until you earn access.")
-                    .font(ZenoTokens.Typography.bodyLarge)
-                    .foregroundColor(ZenoSemanticTokens.Theme.mutedForeground)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .staggeredItem(index: 1, isVisible: contentVisible)
+        VStack(spacing: 0) {
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: ZenoSemanticTokens.Space.lg) {
+                    Spacer()
+                        .frame(height: ZenoSemanticTokens.Space.xxl)
+                    
+                    // Header
+                    VStack(spacing: ZenoSemanticTokens.Space.md) {
+                        Text("Select Your Apps")
+                            .font(ZenoTokens.Typography.titleMedium)
+                            .foregroundColor(ZenoSemanticTokens.Theme.foreground)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .staggeredItem(index: 0, isVisible: contentVisible)
+                        
+                        Text("Choose the apps that distract you the most. Zeno will block them until you earn access.")
+                            .font(ZenoTokens.Typography.bodyLarge)
+                            .foregroundColor(ZenoSemanticTokens.Theme.mutedForeground)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .staggeredItem(index: 1, isVisible: contentVisible)
+                    }
+                    .padding(.horizontal, ZenoSemanticTokens.Space.lg)
+                    
+                    // Blocked Apps Selection Row
+                    SelectionRow(
+                        icon: "apps.iphone",
+                        title: "Blocked Apps",
+                        subtitle: viewModel.selectedCount > 0 ? "\(viewModel.selectedCount) apps selected" : "Tap to select",
+                        action: { isPickerPresented = true }
+                    )
+                    .padding(.horizontal, ZenoSemanticTokens.Space.lg)
+                    .familyActivityPicker(isPresented: $isPickerPresented, selection: $viewModel.selection)
+                    .staggeredItem(index: 2, isVisible: contentVisible)
+                    
+                    // MARK: - Blocking Schedule Section
+                    scheduleSection
+                        .staggeredItem(index: 3, isVisible: contentVisible)
+                    
+                    // Bottom spacing for scroll content
+                    Spacer()
+                        .frame(height: 120)
+                }
             }
-            .padding(.horizontal, ZenoSemanticTokens.Space.lg)
             
-            SelectionRow(
-                icon: "apps.iphone",
-                title: "Blocked Apps",
-                subtitle: viewModel.selectedCount > 0 ? "\(viewModel.selectedCount) apps selected" : "Tap to select",
-                action: { isPickerPresented = true }
+            // Footer with gradient overlay
+            VStack {
+                ActionButton("Continue", variant: .primary, action: saveAndContinue)
+                    .disabled(viewModel.selectedCount == 0 || !viewModel.isScheduleValid)
+                    .opacity((viewModel.selectedCount == 0 || !viewModel.isScheduleValid) ? 0.5 : 1.0)
+                    .padding(.horizontal, ZenoSemanticTokens.Space.lg)
+                    .padding(.bottom, ZenoSemanticTokens.Space.lg)
+                    .staggeredItem(index: 6, isVisible: contentVisible)
+            }
+            .background(
+                LinearGradient(
+                    colors: [
+                        ZenoSemanticTokens.Theme.background.opacity(0),
+                        ZenoSemanticTokens.Theme.background.opacity(0.9),
+                        ZenoSemanticTokens.Theme.background
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 100)
+                .allowsHitTesting(false),
+                alignment: .top
             )
-            .padding(.horizontal, ZenoSemanticTokens.Space.lg)
-            .familyActivityPicker(isPresented: $isPickerPresented, selection: $viewModel.selection)
-            .staggeredItem(index: 2, isVisible: contentVisible)
-            
-            Spacer()
-            
-            ActionButton("Continue", variant: .primary, action: saveAndContinue)
-                .disabled(viewModel.selectedCount == 0)
-                .opacity(viewModel.selectedCount == 0 ? 0.5 : 1.0)
-                .padding(.horizontal, ZenoSemanticTokens.Space.lg)
-                .padding(.bottom, ZenoSemanticTokens.Space.lg)
-                .staggeredItem(index: 3, isVisible: contentVisible)
         }
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 contentVisible = true
             }
+        }
+    }
+    
+    // MARK: - Schedule Section
+    
+    private var scheduleSection: some View {
+        VStack(alignment: .leading, spacing: ZenoSemanticTokens.Space.md) {
+            // Section Header
+            Text("BLOCKING SCHEDULE")
+                .font(ZenoTokens.Typography.labelSmall)
+                .fontWeight(.semibold)
+                .foregroundColor(ZenoSemanticTokens.Theme.mutedForeground)
+                .tracking(1.5)
+                .padding(.horizontal, ZenoSemanticTokens.Space.lg)
+            
+            // Time Picker Cards
+            ScheduleTimeStack(
+                startTime: $viewModel.scheduleStartTime,
+                endTime: $viewModel.scheduleEndTime
+            )
+            .padding(.horizontal, ZenoSemanticTokens.Space.lg)
+            
+            // Days Section Header
+            Text("ACTIVE ON DAYS")
+                .font(ZenoTokens.Typography.labelSmall)
+                .fontWeight(.semibold)
+                .foregroundColor(ZenoSemanticTokens.Theme.mutedForeground)
+                .tracking(1.5)
+                .padding(.horizontal, ZenoSemanticTokens.Space.lg)
+                .padding(.top, ZenoSemanticTokens.Space.sm)
+            
+            // Day Chips
+            DayChipRow(activeDays: $viewModel.activeDays)
+                .padding(.horizontal, ZenoSemanticTokens.Space.lg)
         }
     }
     
@@ -390,4 +454,5 @@ struct AppPickerContent: View {
         onNext()
     }
 }
+
 

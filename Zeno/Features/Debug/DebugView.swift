@@ -13,13 +13,23 @@ struct DebugView: View {
             // Background fills the entire area
             ZenoSemanticTokens.Theme.background
                 .ignoresSafeArea()
+            NoiseView(opacity: ZenoSemanticTokens.TextureIntensity.subtle)
             
-            ScrollView {
-                VStack(spacing: ZenoSemanticTokens.Space.lg) {
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: ZenoSemanticTokens.Space.xl) {
+                    // Header
+                    Text("Debug")
+                        .font(ZenoTokens.Typography.titleMedium)
+                        .foregroundColor(ZenoSemanticTokens.Theme.foreground)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.top, ZenoSemanticTokens.Space.lg)
+                    
                     debugAccordion
+                    
+                    Spacer()
+                        .frame(height: ZenoSemanticTokens.Space.xxl)
                 }
-                .padding()
-                .frame(maxWidth: .infinity)
+                .padding(.horizontal, ZenoSemanticTokens.Space.lg)
             }
         }
         .task {

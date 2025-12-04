@@ -42,3 +42,11 @@ protocol ManagedAppsStoring {
     func logUnlock(duration: Int, cost: Int, appName: String?)
     func updateSelection(_ selection: FamilyActivitySelection)
 }
+
+// MARK: - Blocking Schedule Store Protocol
+
+protocol BlockingScheduleStoring {
+    var schedule: BlockingSchedule { get }
+    func saveSchedule(_ schedule: BlockingSchedule)
+    func updateSchedule(_ transform: (inout BlockingSchedule) -> Void)
+}

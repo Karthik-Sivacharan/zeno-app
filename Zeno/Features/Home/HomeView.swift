@@ -114,8 +114,8 @@ struct HomeView: View {
     private var homeTabContent: some View {
         // Note: Background is stable at parent level (never animates during tab transitions)
         // Tab bar + floating controls are at parent level (stay fixed during transitions)
-        ScrollView {
-            VStack(spacing: ZenoSemanticTokens.Space.lg) {
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: ZenoSemanticTokens.Space.xl) {
                 // Error message (if any) - displayed as a friendly callout
                 if let error = viewModel.errorMessage {
                     Callout(
@@ -125,7 +125,7 @@ struct HomeView: View {
                     )
                 }
             }
-            .padding()
+            .padding(.horizontal, ZenoSemanticTokens.Space.lg)
             .frame(maxWidth: .infinity)
         }
         .safeAreaInset(edge: .top) {
@@ -261,6 +261,8 @@ struct HomeView: View {
                 }
                 tabBar
             }
+            // Prevent tab content animations from affecting the bottom bar layout
+            .animation(nil, value: selectedTab)
         }
     }
     
@@ -275,4 +277,5 @@ struct HomeView: View {
 #Preview {
     HomeView()
 }
+
 

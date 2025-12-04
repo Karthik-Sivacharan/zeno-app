@@ -19,7 +19,7 @@ struct Callout: View {
     }
     
     var body: some View {
-        HStack(alignment: .center, spacing: ZenoSemanticTokens.Space.md) {
+        HStack(alignment: .center, spacing: ZenoSemanticTokens.Space.sm) {
             Image(systemName: icon)
                 .font(ZenoTokens.Typography.titleXSmall)
                 .foregroundColor(iconColor)
