@@ -5,48 +5,34 @@ import SwiftUI
 /// Animation mode for the segmented bar.
 /// Choose based on use case to get the right feel.
 enum SegmentedBarAnimationMode {
-    /// Stagger fill from left-to-right on EVERY appear (toggles, page changes).
-    /// Starts empty, then fills. Perfect for static progress displays.
-    case staggerEveryAppear
+    /// Smooth liquid fill from left-to-right on EVERY appear.
+    /// Starts empty, then fills. Perfect for static progress displays (Home card).
+    case liquidReveal
     
-    /// Only animate NEW segments with a subtle grow effect.
-    /// Already-filled segments stay static. Perfect for live step tracking.
-    case incrementalOnly
+    /// Smooth animation when progress changes.
+    /// Already-filled segments stay visible. Perfect for live step tracking (Walk page).
+    case liquidFlow
     
     /// No animation. Instant fill.
     case none
 }
 
-// MARK: - Segmented Bar Animation Configuration
-
-/// Configuration for segmented bar animations.
-/// Follows Zeno animation guidelines — fast, purposeful, staggered.
-enum SegmentedBarAnimationConfig {
-    /// Minimal delay before first segment (just enough for empty state to render)
-    static let renderDelay: Double = 0.05
-    /// Delay between each segment's animation (fast wave)
-    static let staggerInterval: Double = 0.012
-    /// Easing curve for stagger reveal
-    static let staggerEasing: Animation = .easeOut(duration: ZenoSemanticTokens.Motion.Duration.snap)
-    /// Easing curve for incremental segment updates
-    static let incrementalEasing: Animation = .easeOut(duration: ZenoSemanticTokens.Motion.Duration.snap)
-}
-
-/// A segmented progress bar with individual bars and smooth fill animations.
-/// Matches the Zeno mechanical aesthetic with discrete segments.
+/// A segmented progress bar with individual bars and smooth liquid-mask animation.
+/// Matches the Zeno mechanical aesthetic with discrete segments, but animates
+/// as a single fluid motion rather than individual segment pops.
 ///
 /// **Animation Modes:**
-/// - `.staggerEveryAppear` — Stagger fill on every appear (toggles, page changes)
-/// - `.incrementalOnly` — Only new segments animate (live step tracking)
+/// - `.liquidReveal` — Smooth fill from 0 on every appear (Home card toggle)
+/// - `.liquidFlow` — Smooth animation on progress changes (Live step tracking)
 /// - `.none` — No animation
 ///
 /// **Usage:**
 /// ```swift
-/// // Static display (toggle between steps/time) — animates every time
-/// ZenoSegmentedBar(progress: 0.75, animationMode: .staggerEveryAppear)
+/// // Home card (toggle between steps/time) — animates from 0 every time
+/// ZenoSegmentedBar(progress: 0.75, animationMode: .liquidReveal)
 ///
-/// // Live step tracking — only new segments pop
-/// ZenoSegmentedBar(progress: stepProgress, animationMode: .incrementalOnly)
+/// // Live step tracking — smooth progress updates
+/// ZenoSegmentedBar(progress: stepProgress, animationMode: .liquidFlow)
 /// ```
 struct ZenoSegmentedBar: View {
     /// Progress value between 0 and 1
@@ -67,11 +53,8 @@ struct ZenoSegmentedBar: View {
     /// Animation mode
     let animationMode: SegmentedBarAnimationMode
     
-    /// Tracks which segments have been revealed (for animation)
-    @State private var revealedSegments: Set<Int> = []
-    
-    /// Unique ID to force view refresh on appear (for staggerEveryAppear mode)
-    @State private var refreshID = UUID()
+    /// The animated progress value (what the mask actually uses)
+    @State private var animatedProgress: CGFloat = 0
     
     init(
         progress: CGFloat,
@@ -79,7 +62,7 @@ struct ZenoSegmentedBar: View {
         height: CGFloat = ZenoTokens.SpacingScale._4, // 16pt
         filledColor: Color = ZenoSemanticTokens.Theme.primary,
         emptyColor: Color = ZenoTokens.ColorBase.Moss._600,
-        animationMode: SegmentedBarAnimationMode = .staggerEveryAppear
+        animationMode: SegmentedBarAnimationMode = .liquidReveal
     ) {
         self.progress = min(max(progress, 0), 1)
         self.segmentCount = segmentCount
@@ -89,122 +72,84 @@ struct ZenoSegmentedBar: View {
         self.animationMode = animationMode
     }
     
-    /// Number of filled segments based on progress
-    private var filledCount: Int {
-        Int(round(progress * CGFloat(segmentCount)))
-    }
-    
     var body: some View {
         GeometryReader { geometry in
-            HStack(spacing: segmentSpacing(for: geometry.size.width)) {
-                ForEach(0..<segmentCount, id: \.self) { index in
-                    SegmentView(
-                        index: index,
-                        isFilled: index < filledCount,
-                        isRevealed: revealedSegments.contains(index),
-                        filledColor: filledColor,
-                        emptyColor: emptyColor,
-                        cornerRadius: segmentCornerRadius,
-                        width: segmentWidth(for: geometry.size.width),
-                        height: height,
-                        animationMode: animationMode
+            ZStack(alignment: .leading) {
+                // MARK: - Empty Segments (Background)
+                segmentsView(geometry: geometry, filled: false)
+                
+                // MARK: - Filled Segments (Masked by animated progress)
+                segmentsView(geometry: geometry, filled: true)
+                    .mask(
+                        Rectangle()
+                            .frame(width: geometry.size.width * animatedProgress)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     )
-                }
             }
         }
         .frame(height: height)
-        .id(refreshID) // Force view refresh for staggerEveryAppear
         .onAppear {
             handleAppear()
         }
-        .onChange(of: filledCount) { oldValue, newValue in
-            handleProgressChange(from: oldValue, to: newValue)
+        .onChange(of: progress) { _, newValue in
+            handleProgressChange(to: newValue)
+        }
+    }
+    
+    // MARK: - Segments View
+    
+    /// Creates the row of segment rectangles
+    private func segmentsView(geometry: GeometryProxy, filled: Bool) -> some View {
+        HStack(spacing: segmentSpacing(for: geometry.size.width)) {
+            ForEach(0..<segmentCount, id: \.self) { _ in
+                RoundedRectangle(cornerRadius: segmentCornerRadius)
+                    .fill(filled ? filledColor : emptyColor)
+                    .frame(
+                        width: segmentWidth(for: geometry.size.width),
+                        height: height
+                    )
+            }
         }
     }
     
     // MARK: - Animation Handlers
     
+    /// Animation for progress bar fill — smooth easeInOut at medium speed (0.5s)
+    /// Faster than `liquid` (0.8s) but still fluid, not jarring.
+    private var fillAnimation: Animation {
+        .easeInOut(duration: ZenoSemanticTokens.Motion.Duration.medium)
+    }
+    
     private func handleAppear() {
         switch animationMode {
-        case .staggerEveryAppear:
-            // Reset and stagger fill from empty
-            revealedSegments = []
-            triggerStaggeredReveal(upTo: filledCount)
+        case .liquidReveal:
+            // Start from 0, animate to progress
+            animatedProgress = 0
+            withAnimation(fillAnimation) {
+                animatedProgress = progress
+            }
             
-        case .incrementalOnly:
-            // Instantly show current progress (no initial animation)
-            revealedSegments = Set(0..<filledCount)
+        case .liquidFlow:
+            // Start at current progress (no initial animation)
+            animatedProgress = progress
             
         case .none:
             // Instant fill
-            revealedSegments = Set(0..<filledCount)
+            animatedProgress = progress
         }
     }
     
-    private func handleProgressChange(from oldValue: Int, to newValue: Int) {
+    private func handleProgressChange(to newValue: CGFloat) {
         switch animationMode {
-        case .staggerEveryAppear:
-            // For stagger mode, progress changes also trigger incremental animation
-            if newValue > oldValue {
-                triggerIncrementalReveal(from: oldValue, to: newValue)
-            } else if newValue < oldValue {
-                for i in newValue..<oldValue {
-                    revealedSegments.remove(i)
-                }
-            }
-            
-        case .incrementalOnly:
-            // Only animate new segments with subtle pop
-            if newValue > oldValue {
-                triggerIncrementalReveal(from: oldValue, to: newValue)
-            } else if newValue < oldValue {
-                for i in newValue..<oldValue {
-                    revealedSegments.remove(i)
-                }
+        case .liquidReveal, .liquidFlow:
+            // Smooth transition to new progress
+            withAnimation(fillAnimation) {
+                animatedProgress = newValue
             }
             
         case .none:
             // Instant update
-            if newValue > oldValue {
-                for i in oldValue..<newValue {
-                    revealedSegments.insert(i)
-                }
-            } else {
-                for i in newValue..<oldValue {
-                    revealedSegments.remove(i)
-                }
-            }
-        }
-    }
-    
-    // MARK: - Animation Triggers
-    
-    /// Stagger reveal segments from 0 to `count`
-    private func triggerStaggeredReveal(upTo count: Int) {
-        // Small delay so SwiftUI renders empty state first
-        let baseDelay = SegmentedBarAnimationConfig.renderDelay
-        
-        for i in 0..<count {
-            let delay = baseDelay + (Double(i) * SegmentedBarAnimationConfig.staggerInterval)
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-                withAnimation(SegmentedBarAnimationConfig.staggerEasing) {
-                    _ = revealedSegments.insert(i)
-                }
-            }
-        }
-    }
-    
-    /// Reveal new segments with subtle animation
-    private func triggerIncrementalReveal(from oldCount: Int, to newCount: Int) {
-        for i in oldCount..<newCount {
-            let delay = Double(i - oldCount) * SegmentedBarAnimationConfig.staggerInterval
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-                withAnimation(SegmentedBarAnimationConfig.incrementalEasing) {
-                    _ = revealedSegments.insert(i)
-                }
-            }
+            animatedProgress = newValue
         }
     }
     
@@ -227,35 +172,6 @@ struct ZenoSegmentedBar: View {
         // Spacing is ~25% of segment width for visual separation
         let estimatedSegmentWidth = totalWidth / CGFloat(segmentCount)
         return max(estimatedSegmentWidth * 0.25, ZenoTokens.SpacingScale._1) // 4pt min
-    }
-}
-
-// MARK: - Segment View (Individual Segment)
-
-/// A single segment in the segmented bar.
-/// Simple color transition — the stagger timing creates the wave effect.
-private struct SegmentView: View {
-    let index: Int
-    let isFilled: Bool
-    let isRevealed: Bool
-    let filledColor: Color
-    let emptyColor: Color
-    let cornerRadius: CGFloat
-    let width: CGFloat
-    let height: CGFloat
-    let animationMode: SegmentedBarAnimationMode
-    
-    /// The segment shows as filled only if both conditions are true:
-    /// 1. It should be filled (based on progress)
-    /// 2. It has been revealed (animation has triggered)
-    private var showAsFilled: Bool {
-        isFilled && isRevealed
-    }
-    
-    var body: some View {
-        RoundedRectangle(cornerRadius: cornerRadius)
-            .fill(showAsFilled ? filledColor : emptyColor)
-            .frame(width: width, height: height)
     }
 }
 
@@ -366,23 +282,23 @@ private struct SegmentView: View {
 
 // MARK: - Animation Previews
 
-#Preview("Animation: Initial Reveal") {
-    SegmentedBarAnimationPreview()
+#Preview("Animation: Liquid Reveal") {
+    LiquidRevealPreview()
 }
 
-#Preview("Animation: Live Step Tracking") {
+#Preview("Animation: Liquid Flow (Live Tracking)") {
     LiveStepTrackingPreview()
 }
 
-/// Preview demonstrating staggered initial reveal animation.
+/// Preview demonstrating liquid reveal animation.
 /// Tap to reset and replay the animation.
-private struct SegmentedBarAnimationPreview: View {
+private struct LiquidRevealPreview: View {
     @State private var showBar = false
     @State private var progress: CGFloat = 0.75
     
     var body: some View {
         VStack(spacing: ZenoSemanticTokens.Space.xl) {
-            Text("Initial Reveal Animation")
+            Text("Liquid Reveal Animation")
                 .font(ZenoTokens.Typography.titleXSmall)
                 .foregroundColor(ZenoSemanticTokens.Theme.foreground)
             
@@ -391,7 +307,7 @@ private struct SegmentedBarAnimationPreview: View {
                 .foregroundColor(ZenoSemanticTokens.Theme.mutedForeground)
             
             if showBar {
-                ZenoSegmentedBar(progress: progress)
+                ZenoSegmentedBar(progress: progress, animationMode: .liquidReveal)
             } else {
                 // Placeholder to maintain layout
                 Rectangle()
@@ -427,7 +343,7 @@ private struct SegmentedBarAnimationPreview: View {
 }
 
 /// Preview simulating live step tracking.
-/// Progress increases automatically, demonstrating incremental fill animation.
+/// Progress increases automatically, demonstrating liquid flow animation.
 private struct LiveStepTrackingPreview: View {
     @State private var steps: Int = 0
     @State private var isWalking = false
@@ -441,7 +357,7 @@ private struct LiveStepTrackingPreview: View {
     
     var body: some View {
         VStack(spacing: ZenoSemanticTokens.Space.xl) {
-            Text("Live Step Tracking")
+            Text("Liquid Flow (Live Tracking)")
                 .font(ZenoTokens.Typography.titleXSmall)
                 .foregroundColor(ZenoSemanticTokens.Theme.foreground)
             
@@ -456,10 +372,10 @@ private struct LiveStepTrackingPreview: View {
                 .font(ZenoTokens.Typography.labelSmall)
                 .foregroundColor(ZenoSemanticTokens.Theme.mutedForeground)
             
-            // Progress bar with incremental animation for live tracking
+            // Progress bar with liquid flow animation for live tracking
             ZenoSegmentedBar(
                 progress: progress,
-                animationMode: .incrementalOnly // Only new segments animate with subtle pop
+                animationMode: .liquidFlow
             )
             
             // Simulate walking button
@@ -508,4 +424,3 @@ private struct LiveStepTrackingPreview: View {
         }
     }
 }
-

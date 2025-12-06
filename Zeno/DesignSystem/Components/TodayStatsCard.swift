@@ -122,53 +122,9 @@ struct TodayStatsCard: View {
             
             Spacer()
             
-            // Segmented Toggle
-            modeToggle
+            // Segmented Toggle (reusable component)
+            ZenoSegmentedControl(selection: $displayMode)
         }
-    }
-    
-    // MARK: - Mode Toggle (Steps | Time)
-    
-    /// Corner radius for toggle - mechanical, not pill-shaped
-    private let toggleRadius = ZenoSemanticTokens.Radius.md
-    
-    private var modeToggle: some View {
-        HStack(spacing: 0) {
-            ForEach(StatsDisplayMode.allCases, id: \.self) { mode in
-                Button {
-                    displayMode = mode
-                } label: {
-                    Text(mode.rawValue)
-                        .font(ZenoTokens.Typography.labelMedium)
-                        .foregroundColor(toggleForeground(for: mode))
-                        .padding(.horizontal, ZenoSemanticTokens.Space.md)
-                        .padding(.vertical, ZenoSemanticTokens.Space.sm)
-                        .background(toggleBackground(for: mode))
-                        .clipShape(RoundedRectangle(cornerRadius: toggleRadius))
-                }
-                .buttonStyle(.plain)
-                .animation(.easeOut(duration: ZenoSemanticTokens.Motion.Duration.snap), value: displayMode)
-            }
-        }
-        .padding(ZenoTokens.SpacingScale._1)
-        .background(
-            RoundedRectangle(cornerRadius: toggleRadius + ZenoTokens.SpacingScale._1)
-                .fill(ZenoSemanticTokens.Theme.card)
-                .overlay(
-                    RoundedRectangle(cornerRadius: toggleRadius + ZenoTokens.SpacingScale._1)
-                        .strokeBorder(ZenoSemanticTokens.Theme.border, lineWidth: ZenoSemanticTokens.Stroke.hairline)
-                )
-        )
-    }
-    
-    private func toggleBackground(for mode: StatsDisplayMode) -> Color {
-        displayMode == mode ? ZenoSemanticTokens.Theme.primary : .clear
-    }
-    
-    private func toggleForeground(for mode: StatsDisplayMode) -> Color {
-        // Active: dark text on bright primary background (high contrast)
-        // Inactive: foreground text on transparent (readable)
-        displayMode == mode ? ZenoSemanticTokens.Theme.primaryForeground : ZenoSemanticTokens.Theme.foreground
     }
     
     // MARK: - Hero Section
