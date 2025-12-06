@@ -116,6 +116,14 @@ struct HomeView: View {
         // Tab bar + floating controls are at parent level (stay fixed during transitions)
         ScrollView(showsIndicators: false) {
             VStack(spacing: ZenoSemanticTokens.Space.xl) {
+                // Today Stats Card - Shows steps/time with toggle
+                TodayStatsCard(
+                    stepsWalked: viewModel.steps,
+                    stepsAvailable: viewModel.stepsAvailable,
+                    timeEarned: viewModel.creditsEarned,
+                    timeAvailable: viewModel.creditsAvailable
+                )
+                
                 // Error message (if any) - displayed as a friendly callout
                 if let error = viewModel.errorMessage {
                     Callout(
@@ -125,7 +133,7 @@ struct HomeView: View {
                     )
                 }
             }
-            .padding(.horizontal, ZenoSemanticTokens.Space.lg)
+            .padding(.horizontal, ZenoSemanticTokens.Space.md)
             .frame(maxWidth: .infinity)
         }
         .safeAreaInset(edge: .top) {
@@ -138,30 +146,36 @@ struct HomeView: View {
     @ViewBuilder
     private var statusHeader: some View {
         if viewModel.isBlocking && viewModel.hasAppsToBlock {
-            HStack(spacing: ZenoSemanticTokens.Space.xs) {
-                Image(systemName: "shield.fill")
-                    .font(ZenoTokens.Typography.labelSmall)
+            VStack(spacing: 0) {
+                HStack(spacing: ZenoSemanticTokens.Space.xs) {
+                    Image(systemName: "shield.fill")
+                        .font(ZenoTokens.Typography.labelSmall)
+                    
+                    Text("Zeno is shielding your apps")
+                        .font(ZenoTokens.Typography.labelMedium)
+                }
+                .foregroundColor(ZenoSemanticTokens.Theme.primary)
+                .shimmer(isActive: true, duration: 2.5)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, ZenoSemanticTokens.Space.sm)
+                .background(
+                    Rectangle()
+                        .fill(.ultraThinMaterial)
+                        .overlay(
+                            Rectangle()
+                                .fill(ZenoSemanticTokens.Theme.background.opacity(0.8))
+                        )
+                        .overlay(alignment: .bottom) {
+                            Rectangle()
+                                .fill(ZenoSemanticTokens.Theme.border)
+                                .frame(height: ZenoSemanticTokens.Stroke.hairline)
+                        }
+                )
                 
-                Text("Zeno is shielding your apps")
-                    .font(ZenoTokens.Typography.labelMedium)
+                // Spacer between header and content
+                Spacer()
+                    .frame(height: ZenoSemanticTokens.Space.md)
             }
-            .foregroundColor(ZenoSemanticTokens.Theme.primary)
-            .shimmer(isActive: true, duration: 2.5)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, ZenoSemanticTokens.Space.sm)
-            .background(
-                Rectangle()
-                    .fill(.ultraThinMaterial)
-                    .overlay(
-                        Rectangle()
-                            .fill(ZenoSemanticTokens.Theme.background.opacity(0.8))
-                    )
-                    .overlay(alignment: .bottom) {
-                        Rectangle()
-                            .fill(ZenoSemanticTokens.Theme.border)
-                            .frame(height: ZenoSemanticTokens.Stroke.hairline)
-                    }
-            )
         }
     }
     

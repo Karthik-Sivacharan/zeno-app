@@ -6,6 +6,7 @@ struct SettingsView: View {
     @State private var schedule: BlockingSchedule
     @State private var isAppPickerPresented = false
     @State private var appSelection = FamilyActivitySelection()
+    @State private var showScheduleDetail = false
     
     private let scheduleStore: BlockingScheduleStoring
     private let appsStore: ManagedAppsStoring
@@ -28,8 +29,8 @@ struct SettingsView: View {
             NoiseView(opacity: ZenoSemanticTokens.TextureIntensity.subtle)
             
             ScrollView(showsIndicators: false) {
-                VStack(spacing: ZenoSemanticTokens.Space.xl) {
-                    // Header
+                VStack(alignment: .leading, spacing: ZenoSemanticTokens.Space.xl) {
+                    // Header (same as Debug view)
                     Text("Settings")
                         .font(ZenoTokens.Typography.titleMedium)
                         .foregroundColor(ZenoSemanticTokens.Theme.foreground)
@@ -37,87 +38,54 @@ struct SettingsView: View {
                         .padding(.top, ZenoSemanticTokens.Space.lg)
                     
                     // MARK: - Blocked Apps Section
-                    blockedAppsSection
+                    SettingsSection(title: "BLOCKED APPS") {
+                        SelectionRow(
+                            icon: "apps.iphone",
+                            title: "Blocked Apps",
+                            subtitle: "\(selectedAppCount) apps selected",
+                            action: { isAppPickerPresented = true }
+                        )
+                        .familyActivityPicker(isPresented: $isAppPickerPresented, selection: $appSelection)
+                        .onChange(of: appSelection) { _, newSelection in
+                            appsStore.updateSelection(newSelection)
+                            AppBlockingService.shared.blockApps()
+                        }
+                    }
                     
                     // MARK: - Schedule Section
-                    scheduleSection
+                    SettingsSection(title: "BLOCKING SCHEDULE") {
+                        SelectionRow(
+                            icon: "clock",
+                            title: "Schedule",
+                            subtitle: scheduleSubtitle,
+                            action: { showScheduleDetail = true }
+                        )
+                    }
+                    
+                    // MARK: - Account Section
+                    SettingsSection(title: "ACCOUNT") {
+                        SelectionRow(
+                            icon: "rectangle.portrait.and.arrow.right",
+                            title: "Log out",
+                            subtitle: nil,
+                            action: {
+                                // TODO: Implement logout
+                            }
+                        )
+                    }
                     
                     Spacer()
                         .frame(height: ZenoSemanticTokens.Space.xxl)
                 }
-                .padding(.horizontal, ZenoSemanticTokens.Space.lg)
+                .padding(.horizontal, ZenoSemanticTokens.Space.md)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
-    }
-    
-    // MARK: - Blocked Apps Section
-    
-    private var blockedAppsSection: some View {
-        VStack(alignment: .leading, spacing: ZenoSemanticTokens.Space.md) {
-            Text("BLOCKED APPS")
-                .font(ZenoTokens.Typography.labelSmall)
-                .fontWeight(.semibold)
-                .foregroundColor(ZenoSemanticTokens.Theme.mutedForeground)
-                .tracking(1.5)
-            
-            SelectionRow(
-                icon: "apps.iphone",
-                title: "Blocked Apps",
-                subtitle: "\(selectedAppCount) apps selected",
-                action: { isAppPickerPresented = true }
+        .fullScreenCover(isPresented: $showScheduleDetail) {
+            ScheduleDetailView(
+                schedule: $schedule,
+                onSave: saveSchedule
             )
-            .familyActivityPicker(isPresented: $isAppPickerPresented, selection: $appSelection)
-            .onChange(of: appSelection) { _, newSelection in
-                appsStore.updateSelection(newSelection)
-                // Re-apply blocking with new selection
-                AppBlockingService.shared.blockApps()
-            }
-        }
-    }
-    
-    // MARK: - Schedule Section
-    
-    private var scheduleSection: some View {
-        VStack(alignment: .leading, spacing: ZenoSemanticTokens.Space.md) {
-            Text("BLOCKING SCHEDULE")
-                .font(ZenoTokens.Typography.labelSmall)
-                .fontWeight(.semibold)
-                .foregroundColor(ZenoSemanticTokens.Theme.mutedForeground)
-                .tracking(1.5)
-            
-            // Time Picker Cards
-            ScheduleTimeStack(
-                startTime: Binding(
-                    get: { schedule.startTimeAsDate },
-                    set: { newDate in
-                        schedule.setStartTime(from: newDate)
-                        saveSchedule()
-                    }
-                ),
-                endTime: Binding(
-                    get: { schedule.endTimeAsDate },
-                    set: { newDate in
-                        schedule.setEndTime(from: newDate)
-                        saveSchedule()
-                    }
-                )
-            )
-            
-            // Days Section
-            Text("ACTIVE ON DAYS")
-                .font(ZenoTokens.Typography.labelSmall)
-                .fontWeight(.semibold)
-                .foregroundColor(ZenoSemanticTokens.Theme.mutedForeground)
-                .tracking(1.5)
-                .padding(.top, ZenoSemanticTokens.Space.sm)
-            
-            DayChipRow(activeDays: Binding(
-                get: { schedule.activeDays },
-                set: { newDays in
-                    schedule.activeDays = newDays
-                    saveSchedule()
-                }
-            ))
         }
     }
     
@@ -129,6 +97,16 @@ struct SettingsView: View {
         appSelection.webDomainTokens.count
     }
     
+    private var scheduleSubtitle: String {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        let start = formatter.string(from: schedule.startTimeAsDate)
+        let end = formatter.string(from: schedule.endTimeAsDate)
+        let dayCount = schedule.activeDays.count
+        let dayText = dayCount == 7 ? "Every day" : "\(dayCount) days"
+        return "\(start) – \(end) • \(dayText)"
+    }
+    
     // MARK: - Private Methods
     
     private func saveSchedule() {
@@ -136,7 +114,180 @@ struct SettingsView: View {
     }
 }
 
+// MARK: - Settings Section
+
+/// A labeled section container for grouped settings
+private struct SettingsSection<Content: View>: View {
+    let title: String
+    @ViewBuilder let content: Content
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: ZenoSemanticTokens.Space.md) {
+            ZenoSectionHeader(title)
+            
+            content
+        }
+    }
+}
+
+// MARK: - Schedule Detail View (Full Screen)
+
+/// Full screen view for editing the blocking schedule
+struct ScheduleDetailView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var schedule: BlockingSchedule
+    let onSave: () -> Void
+    @State private var isEditingUnlocked = false
+    
+    var body: some View {
+        ZStack {
+            ZenoSemanticTokens.Theme.background
+                .ignoresSafeArea()
+            NoiseView(opacity: ZenoSemanticTokens.TextureIntensity.subtle)
+            
+            VStack(spacing: 0) {
+                // Custom Header
+                header
+                
+                ScrollView(showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: ZenoSemanticTokens.Space.xl) {
+                        lockedSection {
+                            blockingHoursSection
+                        }
+                        
+                        lockedSection {
+                            blockingDaysSection
+                        }
+                        
+                        Spacer()
+                            .frame(height: ZenoSemanticTokens.Space.xxl)
+                    }
+                    .padding(.horizontal, ZenoSemanticTokens.Space.md)
+                    .padding(.top, ZenoSemanticTokens.Space.lg)
+                }
+                
+                Spacer()
+                
+                // Bottom friction area
+                bottomAction
+                    .padding(.horizontal, ZenoSemanticTokens.Space.md)
+                    .padding(.bottom, ZenoSemanticTokens.Space.lg)
+            }
+        }
+    }
+    
+    // MARK: - Header
+    
+    private var header: some View {
+        HStack {
+            Text("Blocking Schedule")
+                .font(ZenoTokens.Typography.titleMedium)
+                .foregroundColor(ZenoSemanticTokens.Theme.foreground)
+            
+            Spacer()
+            
+            Button {
+                dismiss()
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: ZenoSemanticTokens.Size.iconSmall, weight: .bold))
+                    .foregroundColor(ZenoSemanticTokens.Theme.foreground)
+                    .frame(
+                        width: ZenoSemanticTokens.Size.iconContainerMedium,
+                        height: ZenoSemanticTokens.Size.iconContainerMedium
+                    )
+                    .background(ZenoSemanticTokens.Theme.card)
+                    .clipShape(Circle())
+                    .overlay(
+                        Circle()
+                            .stroke(ZenoSemanticTokens.Theme.border, lineWidth: ZenoSemanticTokens.Stroke.thin)
+                    )
+            }
+        }
+        .padding(.horizontal, ZenoSemanticTokens.Space.md)
+        .padding(.vertical, ZenoSemanticTokens.Space.md)
+    }
+    
+    // MARK: - Bottom Action
+    
+    private var bottomAction: some View {
+        VStack(spacing: ZenoSemanticTokens.Space.md) {
+            if !isEditingUnlocked {
+                Callout(
+                    icon: "calendar.badge.clock",
+                    text: "Try sticking to your schedule for a week without changing.",
+                    variant: .info
+                )
+            }
+            
+            if isEditingUnlocked {
+                ActionButton("Save Schedule", variant: .primary) {
+                    onSave()
+                    dismiss()
+                }
+            } else {
+                SlideToAction(label: "SLIDE TO EDIT") {
+                    withAnimation(.easeInOut(duration: ZenoSemanticTokens.Motion.Duration.fast)) {
+                        isEditingUnlocked = true
+                    }
+                }
+            }
+        }
+    }
+    
+    private var blockingHoursSection: some View {
+        VStack(alignment: .leading, spacing: ZenoSemanticTokens.Space.md) {
+            ZenoSectionHeader("BLOCKING HOURS")
+            
+            ScheduleTimeStack(
+                startTime: Binding(
+                    get: { schedule.startTimeAsDate },
+                    set: { newDate in
+                        schedule.setStartTime(from: newDate)
+                        onSave()
+                    }
+                ),
+                endTime: Binding(
+                    get: { schedule.endTimeAsDate },
+                    set: { newDate in
+                        schedule.setEndTime(from: newDate)
+                        onSave()
+                    }
+                )
+            )
+        }
+    }
+    
+    private var blockingDaysSection: some View {
+        VStack(alignment: .leading, spacing: ZenoSemanticTokens.Space.md) {
+            ZenoSectionHeader("BLOCKING DAYS")
+            
+            DayChipRow(activeDays: Binding(
+                get: { schedule.activeDays },
+                set: { newDays in
+                    schedule.activeDays = newDays
+                    onSave()
+                }
+            ))
+        }
+    }
+    
+    @ViewBuilder
+    private func lockedSection<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        content()
+            .disabled(!isEditingUnlocked)
+            .opacity(isEditingUnlocked ? 1 : ZenoSemanticTokens.Opacity.muted)
+            .animation(.easeInOut(duration: ZenoSemanticTokens.Motion.Duration.fast), value: isEditingUnlocked)
+    }
+}
+
 #Preview {
     SettingsView()
 }
 
+#Preview("Schedule Detail") {
+    ScheduleDetailView(
+        schedule: .constant(BlockingSchedule.default),
+        onSave: {}
+    )
+}

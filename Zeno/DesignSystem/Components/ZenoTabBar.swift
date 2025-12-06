@@ -46,7 +46,12 @@ struct ZenoTabBar<Tab: Hashable>: View {
         } label: {
             VStack(spacing: ZenoSemanticTokens.Space.xs) {
                 Image(systemName: isSelected ? tab.iconSelected : tab.icon)
-                    .font(.system(size: 22, weight: .medium))
+                    .font(.system(size: ZenoSemanticTokens.Size.iconLarge, weight: .medium))
+                    // Fixed frame prevents icon width changes from shifting adjacent tabs
+                    .frame(
+                        width: ZenoSemanticTokens.Size.iconContainerSmall,
+                        height: ZenoSemanticTokens.Size.iconContainerSmall
+                    )
                 
                 Text(tab.label)
                     .font(ZenoTokens.Typography.labelXSmall)

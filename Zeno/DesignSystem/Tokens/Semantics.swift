@@ -222,6 +222,20 @@ enum ZenoSemanticTokens {
         static let statusDot: CGFloat = ZenoTokens.SpacingScale._2  // 8pt
         /// Standard button height (large CTA)
         static let buttonHeight: CGFloat = ZenoTokens.SpacingScale._14  // 56pt
+        
+        // MARK: Icon Sizes (for SF Symbols)
+        /// Small icon size (close chevrons, secondary icons) - 14pt
+        static let iconSmall: CGFloat = ZenoTokens.Typography.Size.labelSmall
+        /// Medium icon size (inline action icons) - 16pt
+        static let iconMedium: CGFloat = ZenoTokens.Typography.Size.labelMedium
+        /// Large icon size (tab bar icons, hero icons) - 22pt
+        static let iconLarge: CGFloat = 22
+        
+        // MARK: Icon Containers
+        /// Small icon container (tab bar icons) - 28pt
+        static let iconContainerSmall: CGFloat = ZenoTokens.SpacingScale._7
+        /// Medium icon container (close buttons) - 32pt
+        static let iconContainerMedium: CGFloat = ZenoTokens.SpacingScale._8
     }
     
     // MARK: - Motion Tokens (The Physics)
@@ -316,6 +330,18 @@ enum ZenoSemanticTokens {
         static let medium: CGFloat = 2.0
         /// 4pt - The "Slash" or heavy structural dividers
         static let thick: CGFloat = 4.0
+    }
+    
+    // MARK: - Letter Spacing (Tracking)
+    // Defines the spacing between characters.
+    
+    enum LetterSpacing {
+        /// Standard letter spacing for body text
+        static let normal: CGFloat = 0
+        /// Slightly wider for emphasis
+        static let wide: CGFloat = 0.5
+        /// Wide spacing for section headers, labels, uppercase text
+        static let extraWide: CGFloat = 1.5
     }
     
     // MARK: - Texture Opacity (The Noise)

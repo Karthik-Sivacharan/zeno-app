@@ -57,7 +57,7 @@ struct Accordion<Content: View>: View {
                         .foregroundColor(ZenoSemanticTokens.Theme.mutedForeground)
                         .rotationEffect(.degrees(isExpanded ? 90 : 0))
                 }
-                .padding(ZenoSemanticTokens.Space.md)
+                .padding(ZenoSemanticTokens.Space.lg)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -72,7 +72,7 @@ struct Accordion<Content: View>: View {
                     
                     // Content
                     content
-                        .padding(ZenoSemanticTokens.Space.md)
+                        .padding(ZenoSemanticTokens.Space.lg)
                 }
                 .transition(.asymmetric(
                     insertion: .opacity.combined(with: .move(edge: .top)),

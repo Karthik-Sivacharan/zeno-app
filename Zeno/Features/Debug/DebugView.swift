@@ -16,7 +16,7 @@ struct DebugView: View {
             NoiseView(opacity: ZenoSemanticTokens.TextureIntensity.subtle)
             
             ScrollView(showsIndicators: false) {
-                VStack(spacing: ZenoSemanticTokens.Space.xl) {
+                VStack(alignment: .leading, spacing: ZenoSemanticTokens.Space.xl) {
                     // Header
                     Text("Debug")
                         .font(ZenoTokens.Typography.titleMedium)
@@ -29,7 +29,8 @@ struct DebugView: View {
                     Spacer()
                         .frame(height: ZenoSemanticTokens.Space.xxl)
                 }
-                .padding(.horizontal, ZenoSemanticTokens.Space.lg)
+                .padding(.horizontal, ZenoSemanticTokens.Space.md)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
         .task {

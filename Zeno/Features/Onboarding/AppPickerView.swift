@@ -90,11 +90,7 @@ struct AppPickerView: View {
     private var scheduleSection: some View {
         VStack(alignment: .leading, spacing: ZenoSemanticTokens.Space.md) {
             // Section Header
-            Text("BLOCKING SCHEDULE")
-                .font(ZenoTokens.Typography.labelSmall)
-                .fontWeight(.semibold)
-                .foregroundColor(ZenoSemanticTokens.Theme.mutedForeground)
-                .tracking(1.5)
+            ZenoSectionHeader("BLOCKING SCHEDULE")
                 .padding(.horizontal, ZenoSemanticTokens.Space.lg)
             
             // Time Picker Cards
@@ -111,11 +107,7 @@ struct AppPickerView: View {
             }
             
             // Days Section Header
-            Text("ACTIVE ON DAYS")
-                .font(ZenoTokens.Typography.labelSmall)
-                .fontWeight(.semibold)
-                .foregroundColor(ZenoSemanticTokens.Theme.mutedForeground)
-                .tracking(1.5)
+            ZenoSectionHeader("BLOCKING DAYS")
                 .padding(.horizontal, ZenoSemanticTokens.Space.lg)
                 .padding(.top, ZenoSemanticTokens.Space.sm)
             

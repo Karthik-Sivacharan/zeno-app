@@ -123,6 +123,12 @@ class HomeViewModel {
         !isBlocking && remainingSeconds > 0
     }
     
+    /// Steps that have been "used" (spent as credits)
+    /// This is the difference between steps walked and steps still available
+    var stepsUsed: Int {
+        max(steps - stepsAvailable, 0)
+    }
+    
     /// Formatted remaining time string (MM:SS)
     var formattedRemainingTime: String {
         let minutes = remainingSeconds / 60

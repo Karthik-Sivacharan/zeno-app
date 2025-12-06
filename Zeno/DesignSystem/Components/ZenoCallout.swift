@@ -29,7 +29,7 @@ struct Callout: View {
                 .foregroundColor(textColor)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(ZenoSemanticTokens.Space.md)
         .background(backgroundColor)
         .cornerRadius(ZenoSemanticTokens.Radius.none)

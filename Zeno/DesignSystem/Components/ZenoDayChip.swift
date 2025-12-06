@@ -11,8 +11,8 @@ struct DayChip: View {
     let isSelected: Bool
     let action: () -> Void
     
-    /// Square-ish proportions for day chips
-    private let size: CGFloat = 44
+    /// Visual size of the chip (42pt fits 7 chips comfortably)
+    private let size: CGFloat = 42
     
     var body: some View {
         Button(action: action) {
@@ -27,6 +27,7 @@ struct DayChip: View {
                     RoundedRectangle(cornerRadius: ZenoSemanticTokens.Radius.md)
                         .strokeBorder(borderColor, lineWidth: borderWidth)
                 )
+                .contentShape(Rectangle()) // Full chip is tappable
         }
         .buttonStyle(.plain)
         .accessibilityLabel(day.fullName)
@@ -68,7 +69,7 @@ struct DayChipRow: View {
     @Binding var activeDays: Set<Weekday>
     
     var body: some View {
-        HStack(spacing: ZenoSemanticTokens.Space.sm) {
+        HStack(spacing: ZenoSemanticTokens.Space.xs) {
             ForEach(Weekday.allCases) { day in
                 DayChip(
                     day: day,
