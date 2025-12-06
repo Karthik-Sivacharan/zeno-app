@@ -32,16 +32,6 @@ struct TodayStatsCard: View {
     
     // MARK: - Computed Properties
     
-    /// Steps that have been "used" (spent as credits)
-    private var stepsUsed: Int {
-        max(stepsWalked - stepsAvailable, 0)
-    }
-    
-    /// Time that has been spent
-    private var timeSpent: Int {
-        max(timeEarned - timeAvailable, 0)
-    }
-    
     /// Progress for the gauge bar (available / total)
     private var progress: CGFloat {
         switch displayMode {
@@ -74,27 +64,7 @@ struct TodayStatsCard: View {
         }
     }
     
-    /// Left stat (used)
-    private var usedValue: String {
-        switch displayMode {
-        case .steps:
-            return formatNumber(stepsUsed)
-        case .time:
-            return "\(timeSpent)"
-        }
-    }
-    
-    /// Left stat label
-    private var usedLabel: String {
-        switch displayMode {
-        case .steps:
-            return "used"
-        case .time:
-            return "min used"
-        }
-    }
-    
-    /// Right stat (available)
+    /// Available stat value
     private var availableValue: String {
         switch displayMode {
         case .steps:
@@ -104,44 +74,34 @@ struct TodayStatsCard: View {
         }
     }
     
-    /// Right stat label
+    /// Available stat label
     private var availableLabel: String {
-        switch displayMode {
-        case .steps:
-            return "left"
-        case .time:
-            return "min left"
-        }
+        "left to use"
     }
     
-    /// Left icon
-    private var usedIcon: String {
+    /// Available icon - contextual based on mode
+    private var availableIcon: String {
         switch displayMode {
         case .steps:
             return "figure.walk"
         case .time:
-            return "clock"
+            return "hourglass"
         }
-    }
-    
-    /// Right icon
-    private var availableIcon: String {
-        "lock.open"
     }
     
     // MARK: - Body
     
     var body: some View {
-        VStack(spacing: ZenoSemanticTokens.Space.md) {
+        VStack(spacing: ZenoSemanticTokens.Space.sm) {
             // MARK: - Header with Toggle
             headerSection
             
             // MARK: - Hero Number
             heroSection
             
-            // MARK: - Gauge Bar
-            ZenoGaugeBar(progress: progress)
-                .padding(.top, ZenoSemanticTokens.Space.xs)
+            // MARK: - Segmented Progress Bar (stagger animates on every toggle)
+            ZenoSegmentedBar(progress: progress)
+                .id(displayMode) // Force recreate on toggle to replay stagger animation
             
             // MARK: - Stats Row (Icons + Numbers)
             statsRow
@@ -169,6 +129,9 @@ struct TodayStatsCard: View {
     
     // MARK: - Mode Toggle (Steps | Time)
     
+    /// Corner radius for toggle - mechanical, not pill-shaped
+    private let toggleRadius = ZenoSemanticTokens.Radius.md
+    
     private var modeToggle: some View {
         HStack(spacing: 0) {
             ForEach(StatsDisplayMode.allCases, id: \.self) { mode in
@@ -181,7 +144,7 @@ struct TodayStatsCard: View {
                         .padding(.horizontal, ZenoSemanticTokens.Space.md)
                         .padding(.vertical, ZenoSemanticTokens.Space.sm)
                         .background(toggleBackground(for: mode))
-                        .clipShape(Capsule())
+                        .clipShape(RoundedRectangle(cornerRadius: toggleRadius))
                 }
                 .buttonStyle(.plain)
                 .animation(.easeOut(duration: ZenoSemanticTokens.Motion.Duration.snap), value: displayMode)
@@ -189,10 +152,10 @@ struct TodayStatsCard: View {
         }
         .padding(ZenoTokens.SpacingScale._1)
         .background(
-            Capsule()
+            RoundedRectangle(cornerRadius: toggleRadius + ZenoTokens.SpacingScale._1)
                 .fill(ZenoSemanticTokens.Theme.card)
                 .overlay(
-                    Capsule()
+                    RoundedRectangle(cornerRadius: toggleRadius + ZenoTokens.SpacingScale._1)
                         .strokeBorder(ZenoSemanticTokens.Theme.border, lineWidth: ZenoSemanticTokens.Stroke.hairline)
                 )
         )
@@ -226,44 +189,23 @@ struct TodayStatsCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
     
-    // MARK: - Stats Row
+    // MARK: - Stats Row (Available Only)
     
     private var statsRow: some View {
-        HStack {
-            // Left: Used (icon + value + label inline)
-            HStack(spacing: ZenoSemanticTokens.Space.xs) {
-                Image(systemName: usedIcon)
-                    .font(.system(size: ZenoSemanticTokens.Size.iconSmall))
-                    .foregroundColor(ZenoSemanticTokens.Theme.mutedForeground)
-                
-                Text(usedValue)
-                    .font(ZenoTokens.Typography.monoMedium)
-                    .foregroundColor(ZenoSemanticTokens.Theme.foreground)
-                    .contentTransition(.numericText())
-                
-                Text(usedLabel)
-                    .font(ZenoTokens.Typography.labelSmall)
-                    .foregroundColor(ZenoSemanticTokens.Theme.mutedForeground)
-            }
+        HStack(spacing: ZenoSemanticTokens.Space.xxs) {
+            // ZenoIcon ensures consistent sizing across different SF Symbols
+            ZenoIcon(availableIcon, size: .medium, color: ZenoSemanticTokens.Theme.primary)
             
-            Spacer()
+            Text(availableValue)
+                .font(ZenoTokens.Typography.monoMedium)
+                .foregroundColor(ZenoSemanticTokens.Theme.foreground)
+                .contentTransition(.numericText())
             
-            // Right: Available (value + label + icon inline)
-            HStack(spacing: ZenoSemanticTokens.Space.xs) {
-                Text(availableValue)
-                    .font(ZenoTokens.Typography.monoMedium)
-                    .foregroundColor(ZenoSemanticTokens.Theme.foreground)
-                    .contentTransition(.numericText())
-                
-                Text(availableLabel)
-                    .font(ZenoTokens.Typography.labelSmall)
-                    .foregroundColor(ZenoSemanticTokens.Theme.mutedForeground)
-                
-                Image(systemName: availableIcon)
-                    .font(.system(size: ZenoSemanticTokens.Size.iconSmall))
-                    .foregroundColor(ZenoSemanticTokens.Theme.primary)
-            }
+            Text(availableLabel)
+                .font(ZenoTokens.Typography.labelSmall)
+                .foregroundColor(ZenoSemanticTokens.Theme.mutedForeground)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
     
     // MARK: - Card Background
@@ -326,3 +268,4 @@ struct TodayStatsCard: View {
     .padding(ZenoSemanticTokens.Space.md)
     .background(ZenoSemanticTokens.Theme.background)
 }
+

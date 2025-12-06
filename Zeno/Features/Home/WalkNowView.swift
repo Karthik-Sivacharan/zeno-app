@@ -118,8 +118,8 @@ struct WalkNowView: View {
     
     private var progressSection: some View {
         VStack(spacing: ZenoSemanticTokens.Space.sm) {
-            // Progress bar to next minute - using new component
-            ProgressBar(progress: progressToNextMinute, color: accentColor)
+            // Segmented progress bar to next minute (incremental animation for live tracking)
+            ZenoSegmentedBar(progress: progressToNextMinute, animationMode: .incrementalOnly)
             
             // Progress label - shows steps toward next minute
             Text("\(stepsToNextMinute) more steps for +1 min")

@@ -141,12 +141,13 @@ enum ZenoSemanticTokens {
     
     enum Space {
         // General-purpose spacing tokens that wrap the Tailwind scale.
-        static let xs: CGFloat = ZenoTokens.SpacingScale._2       // small padding, tight gaps
-        static let sm: CGFloat = ZenoTokens.SpacingScale._3
-        static let md: CGFloat = ZenoTokens.SpacingScale._4
-        static let lg: CGFloat = ZenoTokens.SpacingScale._6
-        static let xl: CGFloat = ZenoTokens.SpacingScale._8
-        static let xxl: CGFloat = ZenoTokens.SpacingScale._12
+        static let xxs: CGFloat = ZenoTokens.SpacingScale._1      // 4pt - extra tight (inline elements)
+        static let xs: CGFloat = ZenoTokens.SpacingScale._2       // 8pt - small padding, tight gaps
+        static let sm: CGFloat = ZenoTokens.SpacingScale._3       // 12pt
+        static let md: CGFloat = ZenoTokens.SpacingScale._4       // 16pt
+        static let lg: CGFloat = ZenoTokens.SpacingScale._6       // 24pt
+        static let xl: CGFloat = ZenoTokens.SpacingScale._8       // 32pt
+        static let xxl: CGFloat = ZenoTokens.SpacingScale._12     // 48pt
     }
     
     // MARK: - Semantic Radius
