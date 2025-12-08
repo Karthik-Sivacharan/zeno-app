@@ -48,6 +48,7 @@ struct SettingsView: View {
                         .familyActivityPicker(isPresented: $isAppPickerPresented, selection: $appSelection)
                         .onChange(of: appSelection) { _, newSelection in
                             appsStore.updateSelection(newSelection)
+                            // Re-apply blocking with new app selection
                             AppBlockingService.shared.blockApps()
                         }
                     }
@@ -109,8 +110,13 @@ struct SettingsView: View {
     
     // MARK: - Private Methods
     
+    /// Saves the schedule to local storage and registers with DeviceActivity
     private func saveSchedule() {
         scheduleStore.saveSchedule(schedule)
+        
+        // Register the updated schedule with DeviceActivity for OS-level enforcement
+        // This immediately applies the correct blocking state based on new schedule
+        AppBlockingService.shared.registerBlockingSchedule(schedule)
     }
 }
 
@@ -244,14 +250,12 @@ struct ScheduleDetailView: View {
                     get: { schedule.startTimeAsDate },
                     set: { newDate in
                         schedule.setStartTime(from: newDate)
-                        onSave()
                     }
                 ),
                 endTime: Binding(
                     get: { schedule.endTimeAsDate },
                     set: { newDate in
                         schedule.setEndTime(from: newDate)
-                        onSave()
                     }
                 )
             )
@@ -266,7 +270,6 @@ struct ScheduleDetailView: View {
                 get: { schedule.activeDays },
                 set: { newDays in
                     schedule.activeDays = newDays
-                    onSave()
                 }
             ))
         }

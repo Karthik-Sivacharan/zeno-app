@@ -78,11 +78,11 @@ struct ZenoSegmentedBar: View {
                 // MARK: - Empty Segments (Background)
                 segmentsView(geometry: geometry, filled: false)
                 
-                // MARK: - Filled Segments (Masked by animated progress)
+                // MARK: - Filled Segments (Masked by animated progress, snapped to segment boundaries)
                 segmentsView(geometry: geometry, filled: true)
                     .mask(
                         Rectangle()
-                            .frame(width: geometry.size.width * animatedProgress)
+                            .frame(width: snappedMaskWidth(for: geometry.size.width))
                             .frame(maxWidth: .infinity, alignment: .leading)
                     )
             }
@@ -172,6 +172,31 @@ struct ZenoSegmentedBar: View {
         // Spacing is ~25% of segment width for visual separation
         let estimatedSegmentWidth = totalWidth / CGFloat(segmentCount)
         return max(estimatedSegmentWidth * 0.25, ZenoTokens.SpacingScale._1) // 4pt min
+    }
+    
+    // MARK: - Discrete Segment Snapping
+    
+    /// Number of segments that should be fully filled based on animated progress.
+    /// Ensures segments are either fully on or fully off — no partial fills.
+    private var filledSegmentCount: Int {
+        let count = Int((animatedProgress * CGFloat(segmentCount)).rounded(.down))
+        return min(max(count, 0), segmentCount)
+    }
+    
+    /// Calculate the mask width that covers exactly `filledSegmentCount` complete segments.
+    /// The mask extends into the gap after the last filled segment but not into the next segment.
+    private func snappedMaskWidth(for totalWidth: CGFloat) -> CGFloat {
+        let count = filledSegmentCount
+        
+        guard count > 0 else { return 0 }
+        guard count < segmentCount else { return totalWidth }
+        
+        let segWidth = segmentWidth(for: totalWidth)
+        let spacing = segmentSpacing(for: totalWidth)
+        
+        // Cover exactly `count` segments: count * segWidth + (count-1) * spacing
+        // Add half spacing to extend into the gap (but not reach the next segment)
+        return CGFloat(count) * segWidth + CGFloat(count - 1) * spacing + spacing / 2
     }
 }
 

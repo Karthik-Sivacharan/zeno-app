@@ -81,25 +81,15 @@ class AppPickerViewModel {
     
     // MARK: - Actions
     
-    /// Saves both app selection and schedule
+    /// Saves both app selection and schedule, then registers with OS
     func saveSelection() {
         appsStore.updateSelection(selection)
-        saveSchedule()
-    }
-    
-    /// Saves just the schedule
-    func saveSchedule() {
-        let calendar = Calendar.current
         
-        let schedule = BlockingSchedule(
-            startHour: calendar.component(.hour, from: scheduleStartTime),
-            startMinute: calendar.component(.minute, from: scheduleStartTime),
-            endHour: calendar.component(.hour, from: scheduleEndTime),
-            endMinute: calendar.component(.minute, from: scheduleEndTime),
-            activeDays: activeDays
-        )
-        
+        let schedule = buildSchedule()
         scheduleStore.saveSchedule(schedule)
+        
+        // Register the schedule with DeviceActivity for OS-level enforcement
+        AppBlockingService.shared.registerBlockingSchedule(schedule)
     }
     
     /// Toggles a day on or off
@@ -134,10 +124,20 @@ class AppPickerViewModel {
     
     // MARK: - Private Helpers
     
+    private func buildSchedule() -> BlockingSchedule {
+        let calendar = Calendar.current
+        return BlockingSchedule(
+            startHour: calendar.component(.hour, from: scheduleStartTime),
+            startMinute: calendar.component(.minute, from: scheduleStartTime),
+            endHour: calendar.component(.hour, from: scheduleEndTime),
+            endMinute: calendar.component(.minute, from: scheduleEndTime),
+            activeDays: activeDays
+        )
+    }
+    
     private func formatTime(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "h:mm a"
         return formatter.string(from: date)
     }
 }
-

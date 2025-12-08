@@ -21,12 +21,15 @@ final class SharedBlockingState {
         static let unlockExpiresAt = "zeno.shared.unlockExpiresAt"
         static let unlockDuration = "zeno.shared.unlockDuration"
         static let unlockStartedAt = "zeno.shared.unlockStartedAt"
+        static let blockingSchedule = "zeno.shared.blockingSchedule"
     }
     
     // MARK: - Properties
     
     /// Shared UserDefaults for App Group
     private let sharedDefaults: UserDefaults?
+    private let encoder = JSONEncoder()
+    private let decoder = JSONDecoder()
     
     // MARK: - Init
     
@@ -45,7 +48,7 @@ final class SharedBlockingState {
         guard let defaults = sharedDefaults else { return }
         
         do {
-            let data = try JSONEncoder().encode(selection)
+            let data = try encoder.encode(selection)
             defaults.set(data, forKey: Keys.appSelection)
         } catch {
             print("[SharedBlockingState] ERROR encoding app selection: \(error)")
@@ -60,9 +63,38 @@ final class SharedBlockingState {
         }
         
         do {
-            return try JSONDecoder().decode(FamilyActivitySelection.self, from: data)
+            return try decoder.decode(FamilyActivitySelection.self, from: data)
         } catch {
             print("[SharedBlockingState] ERROR decoding app selection: \(error)")
+            return nil
+        }
+    }
+    
+    // MARK: - Blocking Schedule
+    
+    /// Saves the blocking schedule to shared storage so extensions can check active days
+    func saveSchedule(_ schedule: BlockingSchedule) {
+        guard let defaults = sharedDefaults else { return }
+        
+        do {
+            let data = try encoder.encode(schedule)
+            defaults.set(data, forKey: Keys.blockingSchedule)
+        } catch {
+            print("[SharedBlockingState] ERROR encoding schedule: \(error)")
+        }
+    }
+    
+    /// Loads the blocking schedule from shared storage
+    func loadSchedule() -> BlockingSchedule? {
+        guard let defaults = sharedDefaults,
+              let data = defaults.data(forKey: Keys.blockingSchedule) else {
+            return nil
+        }
+        
+        do {
+            return try decoder.decode(BlockingSchedule.self, from: data)
+        } catch {
+            print("[SharedBlockingState] ERROR decoding schedule: \(error)")
             return nil
         }
     }
@@ -137,7 +169,3 @@ final class SharedBlockingState {
         return max(0, expiresAt.timeIntervalSinceNow)
     }
 }
-
-
-
-
