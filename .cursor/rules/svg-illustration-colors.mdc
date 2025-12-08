@@ -1,119 +1,18 @@
----
-description: SVG illustration color palette for Zeno onboarding and marketing assets. Use this to maintain consistent styling across all illustrations.
-globs:
-  - "**/*.svg"
-  - "**/SVGs/**"
+yes---
+description: DEPRECATED - See svg-illustrations.mdc for the complete guide
+globs: []
 ---
 
-# Zeno SVG Illustration Color Palette
+# ⚠️ This file has been merged
 
-> Reference for styling SVG illustrations to match the Zeno design system.
+**All SVG illustration rules are now in a single file:**
 
-## Overview
+→ **`.cursor/rules/svg-illustrations.mdc`**
 
-All SVG illustrations should use colors from this palette to maintain visual consistency. When receiving new SVGs (from designers, stock sources, or AI generation), remap their colors to these values.
+That file contains:
+- Color palette & mapping
+- Layer splitting guide  
+- Animation rules
+- SwiftUI integration
 
----
-
-## Color Mapping Table
-
-| Role | Hex Code | Token Reference | Usage |
-|------|----------|-----------------|-------|
-| **Background** | `transparent` | — | Remove solid backgrounds; illustrations float on app background |
-| **Primary Body** | `#B4913E` | `Brass._400` | Main figure/character body, golden elements |
-| **Skin/Flesh Tones** | `#D8BF9B` | `Sand._300` | Face, exposed skin, light warm surfaces |
-| **Accent Warm (Clouds/Soft)** | `#D18C82` | `Clay._400` | Clouds, soft decorative elements, warm highlights |
-| **Accent Earth (Palm Trees)** | `#965846` | `Clay._500` | Palm trees, foliage, earthy organic shapes |
-| **Outline/Structure** | `#4A2219` | `Clay._800` | Outlines, decorative patterns, structural lines |
-| **Energy/Neon** | `#CCFF00` | `Acid._400` | Rays, glows, highlights, energy effects |
-| **Floor/Ground** | `#B4913E` | `Brass._400` | Pathways, floors, grounded surfaces |
-
----
-
-## Color Replacements Applied
-
-When modifying SVGs for Zeno, apply these transformations:
-
-### Remove
-```
-#D8BF9B (large background rectangles) → DELETE the path entirely
-```
-
-### Replace Black Elements
-```
-#000000 → #4A2219 (Clay._800)
-#0A0F0D → #4A2219 (Clay._800)
-#1A1A1A → #4A2219 (Clay._800)
-```
-
-### Replace Cool Greys/Blues
-```
-#5D8691 (Silt/Teal) → #965846 (Clay._500) for organic elements
-#8A918D (Moss Grey) → #D18C82 (Clay._400) for soft elements like clouds
-```
-
-### Keep As-Is
-```
-#CCFF00 (Acid Green) — Keep for energy/highlight elements
-#B4913E (Brass Gold) — Keep for body/golden elements  
-#D8BF9B (Sand) — Keep for skin tones (not backgrounds)
-```
-
----
-
-## Implementation Checklist
-
-When adding a new SVG illustration:
-
-- [ ] Remove any solid background rectangle (usually the first `<path>`)
-- [ ] Replace all black/dark colors with `#4A2219`
-- [ ] Replace cool grey/blue decorative elements with Clay tones
-- [ ] Verify neon green (`#CCFF00`) is used for energy/highlight elements
-- [ ] Ensure the SVG has no fixed width/height (use `viewBox` only)
-- [ ] Test on dark background to ensure contrast
-
----
-
-## SwiftUI Integration
-
-When displaying SVGs in SwiftUI:
-
-```swift
-SVGView(contentsOf: url)
-    .aspectRatio(contentMode: .fit)
-    .frame(maxWidth: .infinity)
-    .frame(height: UIScreen.main.bounds.height * 0.42)
-```
-
-**Key points:**
-- Use `maxWidth: .infinity` for full-width illustrations
-- Use `aspectRatio(contentMode: .fit)` to maintain proportions
-- Height should be ~40-45% of screen for onboarding illustrations
-
----
-
-## Future Color Updates
-
-To update the color palette across all SVGs:
-
-1. Update the hex values in this document
-2. Use find/replace in each SVG file:
-   ```
-   Old: fill="#OLD_HEX"
-   New: fill="#NEW_HEX"
-   ```
-3. Or create a build script that processes SVGs using this mapping
-
----
-
-## Token Quick Reference
-
-| Token | Hex | Preview |
-|-------|-----|---------|
-| `Clay._400` | `#D18C82` | Light terracotta |
-| `Clay._500` | `#965846` | Base terracotta |
-| `Clay._800` | `#4A2219` | Dark brown |
-| `Brass._400` | `#B4913E` | Gold |
-| `Sand._300` | `#D8BF9B` | Warm beige |
-| `Acid._400` | `#CCFF00` | Neon green |
-| `Olive._950` | `#0A0F0D` | Near black (avoid in illustrations) |
+You can delete this file manually if desired.

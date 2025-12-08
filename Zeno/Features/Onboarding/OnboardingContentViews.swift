@@ -1,5 +1,6 @@
 import SwiftUI
 import FamilyControls
+import SVGView
 
 // MARK: - Health Permission Content (No Background)
 
@@ -197,11 +198,19 @@ struct UsageEstimateContent: View {
 
 struct UsageImpactContent: View {
     let hours: Int
+    var illustrationName: String? = nil
     let onNext: () -> Void
     @State private var contentVisible = false
     
     var body: some View {
         VStack(spacing: 0) {
+            if let illustrationName {
+                OnboardingIllustration(name: illustrationName)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: UIScreen.main.bounds.height * 0.36)
+                    .staggeredItem(index: 0, isVisible: contentVisible)
+            }
+            
             Spacer()
             
             VStack(alignment: .leading, spacing: ZenoSemanticTokens.Space.lg) {
@@ -209,19 +218,19 @@ struct UsageImpactContent: View {
                     Text("\(calculateDays()) days")
                         .font(ZenoTokens.Typography.displayXSmall)
                         .foregroundColor(ZenoSemanticTokens.Theme.destructive)
-                        .staggeredItem(index: 0, isVisible: contentVisible)
+                        .staggeredItem(index: 1, isVisible: contentVisible)
                     
                     Text("a year.")
                         .font(ZenoTokens.Typography.displayXSmall)
                         .foregroundColor(ZenoSemanticTokens.Theme.foreground)
-                        .staggeredItem(index: 1, isVisible: contentVisible)
+                        .staggeredItem(index: 2, isVisible: contentVisible)
                 }
                 
                 Text("That is how much of your life disappears into a screen based on your estimate.")
                     .font(ZenoTokens.Typography.bodyLarge)
                     .foregroundColor(ZenoSemanticTokens.Theme.mutedForeground)
                     .fixedSize(horizontal: false, vertical: true)
-                    .staggeredItem(index: 2, isVisible: contentVisible)
+                    .staggeredItem(index: 3, isVisible: contentVisible)
                 
                 Callout(
                     icon: "clock.arrow.circlepath",
@@ -229,7 +238,7 @@ struct UsageImpactContent: View {
                     variant: .info
                 )
                 .padding(.top, ZenoSemanticTokens.Space.sm)
-                .staggeredItem(index: 3, isVisible: contentVisible)
+                .staggeredItem(index: 4, isVisible: contentVisible)
             }
             .padding(.horizontal, ZenoSemanticTokens.Space.lg)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -238,7 +247,7 @@ struct UsageImpactContent: View {
             ActionButton("Confront It", variant: .primary, action: onNext)
                 .padding(.horizontal, ZenoSemanticTokens.Space.lg)
                 .padding(.bottom, ZenoSemanticTokens.Space.lg)
-                .staggeredItem(index: 4, isVisible: contentVisible)
+                .staggeredItem(index: 5, isVisible: contentVisible)
         }
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
@@ -255,12 +264,20 @@ struct UsageImpactContent: View {
 // MARK: - Screen Time Permission Content (No Background)
 
 struct ScreenTimePermissionContent: View {
+    var illustrationName: String? = nil
     @State private var viewModel = ScreenTimePermissionViewModel()
     @State private var contentVisible = false
     let onNext: () -> Void
     
     var body: some View {
         VStack(spacing: 0) {
+            if let illustrationName {
+                OnboardingIllustration(name: illustrationName)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: UIScreen.main.bounds.height * 0.36)
+                    .staggeredItem(index: 0, isVisible: contentVisible)
+            }
+            
             Spacer()
             
             VStack(alignment: .leading, spacing: ZenoSemanticTokens.Space.md) {
@@ -268,13 +285,13 @@ struct ScreenTimePermissionContent: View {
                     .font(ZenoTokens.Typography.displayXSmall)
                     .foregroundColor(ZenoSemanticTokens.Theme.foreground)
                     .fixedSize(horizontal: false, vertical: true)
-                    .staggeredItem(index: 0, isVisible: contentVisible)
+                    .staggeredItem(index: 1, isVisible: contentVisible)
                 
                 Text("Let's take action. Zeno needs access to block distracting apps and help you break the cycle.")
                     .font(ZenoTokens.Typography.bodyLarge)
                     .foregroundColor(ZenoSemanticTokens.Theme.mutedForeground)
                     .fixedSize(horizontal: false, vertical: true)
-                    .staggeredItem(index: 1, isVisible: contentVisible)
+                    .staggeredItem(index: 2, isVisible: contentVisible)
                 
                 Callout(
                     icon: "lock.shield.fill",
@@ -282,7 +299,7 @@ struct ScreenTimePermissionContent: View {
                     variant: .info
                 )
                 .padding(.top, ZenoSemanticTokens.Space.sm)
-                .staggeredItem(index: 2, isVisible: contentVisible)
+                .staggeredItem(index: 3, isVisible: contentVisible)
             }
             .padding(.horizontal, ZenoSemanticTokens.Space.lg)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -291,7 +308,7 @@ struct ScreenTimePermissionContent: View {
             ActionButton(ctaText, variant: .primary, isLoading: viewModel.isRequesting, action: handleAction)
                 .padding(.horizontal, ZenoSemanticTokens.Space.lg)
                 .padding(.bottom, ZenoSemanticTokens.Space.lg)
-                .staggeredItem(index: 3, isVisible: contentVisible)
+                .staggeredItem(index: 4, isVisible: contentVisible)
         }
         .task {
             await viewModel.checkStatus()
@@ -445,6 +462,285 @@ struct AppPickerContent: View {
         AppBlockingService.shared.blockApps()
         onNext()
     }
+}
+
+
+// MARK: - Shared Illustration (Ambient)
+
+private struct OnboardingIllustration: View {
+    let name: String
+    
+    var body: some View {
+        let resolvedURL = svgURL(named: name)
+        
+        Group {
+            if let url = resolvedURL {
+                if ContentLayeredIllustration.hasLayers(for: name) {
+                    ContentLayeredIllustration(baseName: name, fallbackURL: url)
+                } else {
+                    SimpleAnimatedSVGForOnboarding(url: url)
+                }
+            } else {
+                IllustrationGlowFallback()
+            }
+        }
+        #if DEBUG
+        .overlay(alignment: .topTrailing) {
+            if resolvedURL == nil {
+                Text("SVG missing: \(name)")
+                    .font(.caption2)
+                    .foregroundColor(.red)
+                    .padding(6)
+                    .background(Color.black.opacity(0.5))
+                    .cornerRadius(8)
+            }
+        }
+        #endif
+    }
+}
+
+// MARK: - Layered Illustration (Onboarding screens)
+
+/// Lightweight layered renderer for onboarding content screens.
+/// Expected assets per base name: `background`, `accent`, `figure`, `foreground`.
+private struct ContentLayeredIllustration: View {
+    let baseName: String
+    let fallbackURL: URL
+    
+    private enum Config {
+        static let breatheScale: CGFloat = 0.016
+        static let breatheSpeed: Double = 0.6
+        static let floatOffset: CGFloat = 6
+        static let floatSpeed: Double = 0.45
+        
+        static let accentOpacityMin: Double = 0.9
+        static let accentOpacityMax: Double = 1.0
+        static let accentPulseSpeed: Double = 0.5
+        
+        static let glowMin: Double = 0.12
+        static let glowMax: Double = 0.32
+        static let glowSpeed: Double = 0.5
+    }
+    
+    static func hasLayers(for baseName: String) -> Bool {
+        layerURL(for: baseName, suffix: "figure") != nil
+    }
+    
+    private var hasAnyLayer: Bool {
+        layerURL(for: "figure") != nil ||
+        layerURL(for: "background") != nil ||
+        layerURL(for: "accent") != nil ||
+        layerURL(for: "foreground") != nil
+    }
+    
+    var body: some View {
+        if hasAnyLayer {
+            layeredContent
+        } else {
+            SimpleAnimatedSVGForOnboarding(url: fallbackURL)
+        }
+    }
+    
+    @ViewBuilder
+    private var layeredContent: some View {
+        TimelineView(.animation) { timeline in
+            let time = timeline.date.timeIntervalSinceReferenceDate
+            
+            let breathePhase = sin(time * Config.breatheSpeed * .pi * 2)
+            let floatPhase = sin(time * Config.floatSpeed * .pi * 2)
+            let accentPhase = sin(time * Config.accentPulseSpeed * .pi * 2)
+            let glowPhase = sin(time * Config.glowSpeed * .pi * 2)
+            
+            let figureScale = 1.0 + (Config.breatheScale * breathePhase)
+            let figureOffsetY = Config.floatOffset * floatPhase
+            let accentOpacity = Config.accentOpacityMin + (Config.accentOpacityMax - Config.accentOpacityMin) * ((accentPhase + 1) / 2)
+            let glowOpacity = Config.glowMin + (Config.glowMax - Config.glowMin) * ((glowPhase + 1) / 2)
+            
+            ZStack {
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                ZenoTokens.ColorBase.Acid._400.opacity(glowOpacity),
+                                ZenoTokens.ColorBase.Sand._500.opacity(glowOpacity * 0.3),
+                                Color.clear
+                            ],
+                            center: .center,
+                            startRadius: 20,
+                            endRadius: 200
+                        )
+                    )
+                    .frame(width: 300, height: 300)
+                    .blur(radius: 50)
+                    .offset(y: -60)
+                
+                if let backgroundURL = layerURL(for: "background") {
+                    SVGView(contentsOf: backgroundURL)
+                        .aspectRatio(contentMode: .fit)
+                }
+                
+                if let accentURL = layerURL(for: "accent") {
+                    SVGView(contentsOf: accentURL)
+                        .aspectRatio(contentMode: .fit)
+                        .opacity(accentOpacity)
+                }
+                
+                if let figureURL = layerURL(for: "figure") {
+                    SVGView(contentsOf: figureURL)
+                        .aspectRatio(contentMode: .fit)
+                        .scaleEffect(figureScale)
+                        .offset(y: figureOffsetY)
+                }
+                
+                if let foregroundURL = layerURL(for: "foreground") {
+                    SVGView(contentsOf: foregroundURL)
+                        .aspectRatio(contentMode: .fit)
+                }
+            }
+        }
+    }
+    
+    private func layerURL(for suffix: String) -> URL? {
+        Self.layerURL(for: baseName, suffix: suffix)
+    }
+    
+    private static func layerURL(for baseName: String, suffix: String) -> URL? {
+        svgURL(
+            named: "\(baseName)-\(suffix)",
+            preferredSubdirectories: [
+                "SVGs/\(baseName)",
+                baseName,
+                "SVGs",
+                nil
+            ]
+        )
+    }
+}
+
+private struct SimpleAnimatedSVGForOnboarding: View {
+    let url: URL
+    
+    private enum Config {
+        static let breatheScale: CGFloat = 0.016
+        static let breatheSpeed: Double = 0.6
+        static let floatOffset: CGFloat = 6
+        static let floatSpeed: Double = 0.45
+        static let glowMin: Double = 0.12
+        static let glowMax: Double = 0.32
+        static let glowSpeed: Double = 0.5
+    }
+    
+    var body: some View {
+        TimelineView(.animation) { timeline in
+            let time = timeline.date.timeIntervalSinceReferenceDate
+            
+            let breathePhase = sin(time * Config.breatheSpeed * .pi * 2)
+            let floatPhase = sin(time * Config.floatSpeed * .pi * 2)
+            let glowPhase = sin(time * Config.glowSpeed * .pi * 2)
+            
+            let scale = 1.0 + (Config.breatheScale * breathePhase)
+            let yOffset = Config.floatOffset * floatPhase
+            let glowOpacity = Config.glowMin + (Config.glowMax - Config.glowMin) * ((glowPhase + 1) / 2)
+            
+            ZStack {
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                ZenoTokens.ColorBase.Acid._400.opacity(glowOpacity),
+                                ZenoTokens.ColorBase.Sand._500.opacity(glowOpacity * 0.3),
+                                Color.clear
+                            ],
+                            center: .center,
+                            startRadius: 20,
+                            endRadius: 200
+                        )
+                    )
+                    .frame(width: 300, height: 300)
+                    .blur(radius: 50)
+                    .offset(y: -60)
+                
+                SVGView(contentsOf: url)
+                    .aspectRatio(contentMode: .fit)
+                    .scaleEffect(scale)
+                    .offset(y: yOffset)
+            }
+        }
+    }
+}
+
+private struct IllustrationGlowFallback: View {
+    private enum Config {
+        static let glowMin: Double = 0.15
+        static let glowMax: Double = 0.3
+        static let glowSpeed: Double = 0.4
+    }
+    
+    var body: some View {
+        TimelineView(.animation) { timeline in
+            let time = timeline.date.timeIntervalSinceReferenceDate
+            let glowPhase = sin(time * Config.glowSpeed * .pi * 2)
+            let glowOpacity = Config.glowMin + (Config.glowMax - Config.glowMin) * ((glowPhase + 1) / 2)
+            
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [
+                            ZenoTokens.ColorBase.Acid._400.opacity(glowOpacity),
+                            ZenoTokens.ColorBase.Sand._500.opacity(glowOpacity * 0.4),
+                            Color.clear
+                        ],
+                        center: .center,
+                        startRadius: 20,
+                        endRadius: 180
+                    )
+                )
+                .frame(width: 320, height: 320)
+                .blur(radius: 50)
+        }
+    }
+}
+
+// MARK: - SVG Bundle Lookup Helper
+
+/// Resolves SVG URLs when the `SVGs/` folder is copied as a folder reference.
+/// Attempts subdirectories in order, then falls back to the bundle root.
+private func svgURL(
+    named name: String,
+    preferredSubdirectories: [String?] = [
+        // Common folder-reference locations we use in the app bundle
+        "SVGs",
+        "Zeno/Resources/SVGs",
+        "Resources/SVGs",
+        "Resources",
+        nil
+    ]
+) -> URL? {
+    for subdirectory in preferredSubdirectories {
+        if let url = Bundle.main.url(forResource: name, withExtension: "svg", subdirectory: subdirectory) {
+            return url
+        }
+    }
+    
+    // Fallback: deep search in bundle for the file (handles unknown folder structures)
+    if let root = Bundle.main.resourceURL {
+        let fm = FileManager.default
+        if let enumerator = fm.enumerator(at: root, includingPropertiesForKeys: nil) {
+            for case let fileURL as URL in enumerator {
+                if fileURL.lastPathComponent == "\(name).svg" {
+#if DEBUG
+                    print("ℹ️ SVG found via deep search: \(fileURL.path)")
+#endif
+                    return fileURL
+                }
+            }
+        }
+    }
+    
+#if DEBUG
+    print("⚠️ SVG not found: \(name)")
+#endif
+    return nil
 }
 
 

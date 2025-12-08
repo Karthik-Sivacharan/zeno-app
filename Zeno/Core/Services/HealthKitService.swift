@@ -116,8 +116,10 @@ class HealthKitService: HealthDataProviding {
     // MARK: - Real-Time Step Observation
     
     func observeTodaySteps() -> AsyncStream<Int> {
-        // Stop any existing observation first
-        stopObservingSteps()
+        // Stop any existing observation first on the main actor (HealthKit APIs expect main-thread access)
+        Task { @MainActor in
+            self.stopObservingSteps()
+        }
         
         return AsyncStream { [weak self] continuation in
             guard let self = self else {
@@ -185,7 +187,9 @@ class HealthKitService: HealthDataProviding {
             
             // Handle stream termination
             continuation.onTermination = { [weak self] _ in
-                self?.stopObservingSteps()
+                Task { @MainActor in
+                    self?.stopObservingSteps()
+                }
             }
         }
     }

@@ -34,6 +34,7 @@ struct OnboardingFlowView: View {
             OnboardingContentView(
                 title: "Walk to Unlock",
                 description: "Lock your distracting apps. To access them, you must walk to earn credits. Make your scrolling cost something real.",
+                illustrationName: "walk-to-unlock",
                 onNext: advanceStep
             )
             .transition(contentTransition)
@@ -54,12 +55,16 @@ struct OnboardingFlowView: View {
         case 4:
             UsageImpactContent(
                 hours: estimatedHours,
+                illustrationName: "x-days-in-a-year",
                 onNext: advanceStep
             )
             .transition(.opacity.combined(with: .scale(scale: 0.98)))
             
         case 5:
-            ScreenTimePermissionContent(onNext: advanceStep)
+            ScreenTimePermissionContent(
+                illustrationName: "confront-your-vices",
+                onNext: advanceStep
+            )
                 .transition(contentTransition)
             
         case 6:
@@ -185,7 +190,7 @@ private struct OnboardingContentView: View {
     /// Try to load SVG from bundle (no subdirectory - SVGs at bundle root)
     @ViewBuilder
     private func illustrationView(for name: String) -> some View {
-        if let url = Bundle.main.url(forResource: name, withExtension: "svg") {
+        if let url = svgURL(named: name) {
             // Found SVG in bundle - use animated version
             AnimatedIllustration(url: url)
         } else {
@@ -242,6 +247,11 @@ private struct AnimatedIllustration: View {
         // Check if this is the zen-svg-1 illustration (has layered version)
         if url.lastPathComponent == "zen-svg-1.svg" {
             LayeredZenIllustration(fallbackURL: url)
+        } else if LayeredGenericIllustration.hasLayers(for: url.deletingPathExtension().lastPathComponent) {
+            LayeredGenericIllustration(
+                baseName: url.deletingPathExtension().lastPathComponent,
+                fallbackURL: url
+            )
         } else {
             // Fallback for other SVGs
             SimpleAnimatedSVG(url: url)
@@ -258,14 +268,20 @@ private struct LayeredZenIllustration: View {
     
     // Check if layered SVGs are available (try with and without subdirectory)
     private var hasLayers: Bool {
-        Bundle.main.url(forResource: "zen-svg-1-figure", withExtension: "svg", subdirectory: "zen-svg-1") != nil ||
-        Bundle.main.url(forResource: "zen-svg-1-figure", withExtension: "svg") != nil
+        layerURL(for: "zen-svg-1-figure") != nil
     }
     
     // Helper to find layer SVG (tries subdirectory first, then root)
     private func layerURL(for name: String) -> URL? {
-        Bundle.main.url(forResource: name, withExtension: "svg", subdirectory: "zen-svg-1") ??
-        Bundle.main.url(forResource: name, withExtension: "svg")
+        svgURL(
+            named: name,
+            preferredSubdirectories: [
+                "SVGs/zen-svg-1",
+                "zen-svg-1",
+                "SVGs",
+                nil
+            ]
+        )
     }
     
     // MARK: Animation Configuration per Layer
@@ -412,6 +428,129 @@ private struct LayeredZenIllustration: View {
     }
 }
 
+// MARK: - Layered Generic Illustration (4–5 layers)
+
+/// Generic layered renderer used for other onboarding illustrations.
+/// Expects assets named `<base>-background.svg`, `<base>-accent.svg`,
+/// `<base>-figure.svg`, `<base>-foreground.svg` (optional) inside either
+/// `SVGs/<base>/` or the bundle root, and gracefully falls back if any layer
+/// is missing.
+private struct LayeredGenericIllustration: View {
+    let baseName: String
+    let fallbackURL: URL
+    
+    private enum Config {
+        static let breatheScale: CGFloat = 0.012
+        static let breatheSpeed: Double = 0.55
+        static let floatOffset: CGFloat = 5
+        static let floatSpeed: Double = 0.35
+        
+        static let accentOpacityMin: Double = 0.9
+        static let accentOpacityMax: Double = 1.0
+        static let accentPulseSpeed: Double = 0.45
+        
+        static let glowOpacityMin: Double = 0.12
+        static let glowOpacityMax: Double = 0.28
+        static let glowPulseSpeed: Double = 0.4
+    }
+    
+    static func hasLayers(for baseName: String) -> Bool {
+        layerURL(for: baseName, suffix: "figure") != nil
+    }
+    
+    private var hasAnyLayer: Bool {
+        layerURL(for: "figure") != nil ||
+        layerURL(for: "background") != nil ||
+        layerURL(for: "accent") != nil ||
+        layerURL(for: "foreground") != nil
+    }
+    
+    var body: some View {
+        if hasAnyLayer {
+            layeredContent
+        } else {
+            SimpleAnimatedSVG(url: fallbackURL)
+        }
+    }
+    
+    @ViewBuilder
+    private var layeredContent: some View {
+        TimelineView(.animation) { timeline in
+            let time = timeline.date.timeIntervalSinceReferenceDate
+            
+            let breathePhase = sin(time * Config.breatheSpeed * .pi * 2)
+            let floatPhase = sin(time * Config.floatSpeed * .pi * 2)
+            let accentPhase = sin(time * Config.accentPulseSpeed * .pi * 2)
+            let glowPhase = sin(time * Config.glowPulseSpeed * .pi * 2)
+            
+            let figureScale = 1.0 + (Config.breatheScale * breathePhase)
+            let figureOffsetY = Config.floatOffset * floatPhase
+            
+            let accentOpacity = Config.accentOpacityMin + (Config.accentOpacityMax - Config.accentOpacityMin) * ((accentPhase + 1) / 2)
+            let glowOpacity = Config.glowOpacityMin + (Config.glowOpacityMax - Config.glowOpacityMin) * ((glowPhase + 1) / 2)
+            
+            ZStack {
+                // Ambient glow behind everything
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                ZenoTokens.ColorBase.Acid._400.opacity(glowOpacity),
+                                ZenoTokens.ColorBase.Sand._500.opacity(glowOpacity * 0.35),
+                                Color.clear
+                            ],
+                            center: .center,
+                            startRadius: 16,
+                            endRadius: 200
+                        )
+                    )
+                    .frame(width: 320, height: 320)
+                    .blur(radius: 55)
+                    .offset(y: -50)
+                
+                if let backgroundURL = layerURL(for: "background") {
+                    SVGView(contentsOf: backgroundURL)
+                        .aspectRatio(contentMode: .fit)
+                }
+                
+                if let accentURL = layerURL(for: "accent") {
+                    SVGView(contentsOf: accentURL)
+                        .aspectRatio(contentMode: .fit)
+                        .opacity(accentOpacity)
+                }
+                
+                if let figureURL = layerURL(for: "figure") {
+                    SVGView(contentsOf: figureURL)
+                        .aspectRatio(contentMode: .fit)
+                        .scaleEffect(figureScale)
+                        .offset(y: figureOffsetY)
+                }
+                
+                if let foregroundURL = layerURL(for: "foreground") {
+                    SVGView(contentsOf: foregroundURL)
+                        .aspectRatio(contentMode: .fit)
+                }
+            }
+        }
+    }
+    
+    private func layerURL(for suffix: String) -> URL? {
+        Self.layerURL(for: baseName, suffix: suffix)
+    }
+    
+    private static func layerURL(for baseName: String, suffix: String) -> URL? {
+        svgURL(
+            named: "\(baseName)-\(suffix)",
+            preferredSubdirectories: [
+                "SVGs/\(baseName)",
+                baseName,
+                "SVGs",
+                nil
+            ]
+        )
+    }
+}
+
 // MARK: - Simple Animated SVG (Fallback for non-layered illustrations)
 
 /// For SVGs that don't have layered versions, apply simple unified animation.
@@ -465,6 +604,48 @@ private struct SimpleAnimatedSVG: View {
             }
         }
     }
+}
+
+// MARK: - SVG Bundle Lookup Helper
+
+/// Resolves SVG URLs with awareness of the bundled `SVGs/` folder reference.
+/// Tries subdirectories in order and falls back to the bundle root.
+private func svgURL(
+    named name: String,
+    preferredSubdirectories: [String?] = [
+        // Common folder-reference locations we use in the app bundle
+        "SVGs",
+        "Zeno/Resources/SVGs",
+        "Resources/SVGs",
+        "Resources",
+        nil
+    ]
+) -> URL? {
+    for subdirectory in preferredSubdirectories {
+        if let url = Bundle.main.url(forResource: name, withExtension: "svg", subdirectory: subdirectory) {
+            return url
+        }
+    }
+    
+    // Fallback: deep search in bundle for the file (handles unknown folder structures)
+    if let root = Bundle.main.resourceURL {
+        let fm = FileManager.default
+        if let enumerator = fm.enumerator(at: root, includingPropertiesForKeys: nil) {
+            for case let fileURL as URL in enumerator {
+                if fileURL.lastPathComponent == "\(name).svg" {
+#if DEBUG
+                    print("ℹ️ SVG found via deep search: \(fileURL.path)")
+#endif
+                    return fileURL
+                }
+            }
+        }
+    }
+    
+#if DEBUG
+    print("⚠️ SVG not found: \(name)")
+#endif
+    return nil
 }
 
 #Preview {
