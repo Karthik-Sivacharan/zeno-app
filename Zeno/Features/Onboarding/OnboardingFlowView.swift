@@ -190,9 +190,22 @@ private struct OnboardingContentView: View {
     /// Try to load SVG from bundle (no subdirectory - SVGs at bundle root)
     @ViewBuilder
     private func illustrationView(for name: String) -> some View {
-        if let url = svgURL(named: name) {
-            // Found SVG in bundle - use animated version
-            AnimatedIllustration(url: url)
+        let lookupOrder: [String?] = [
+            nil, // bundle root
+            "SVGs",
+            "Resources/SVGs",
+            "Zeno/Resources/SVGs",
+        ]
+        // Try both combined file and per-illustration subfolder
+        let url = svgURL(
+            named: name,
+            preferredSubdirectories: lookupOrder + lookupOrder.compactMap { base in
+                base.map { "\($0)/\(name)" }
+            }
+        )
+        
+        if let resolved = url {
+            AnimatedIllustration(url: resolved, name: name)
         } else {
             // Fallback: simple ambient glow placeholder when SVG not found
             IllustrationPlaceholder()
@@ -242,20 +255,32 @@ private struct IllustrationPlaceholder: View {
 /// Creates a "living" feel without being distracting.
 private struct AnimatedIllustration: View {
     let url: URL
+    let name: String
+    
+    // TODO: Re-enable layered animations after SVG layer rework
+    // SVGs with 4-layer animations (currently disabled)
+    // private static let layeredSVGs = ["walk-to-unlock", "x-days-in-a-year", "confront-your-vices"]
     
     var body: some View {
-        // Check if this is the zen-svg-1 illustration (has layered version)
-        if url.lastPathComponent == "zen-svg-1.svg" {
+        // TEMPORARILY DISABLED: Using static SVGs for all onboarding screens
+        // The layered animations need SVG rework to display correctly.
+        // Uncomment below when layers are properly split.
+        
+        /*
+        // Check if this is the zen-svg-1 illustration (has 7-layer version)
+        if name == "zen-svg-1", LayeredZenIllustration.hasLayers {
             LayeredZenIllustration(fallbackURL: url)
-        } else if LayeredGenericIllustration.hasLayers(for: url.deletingPathExtension().lastPathComponent) {
-            LayeredGenericIllustration(
-                baseName: url.deletingPathExtension().lastPathComponent,
-                fallbackURL: url
-            )
+        } else if Self.layeredSVGs.contains(name), LayeredGenericIllustration.hasLayers(for: name) {
+            // 4-layer animation for walk-to-unlock, x-days-in-a-year, confront-your-vices
+            LayeredGenericIllustration(baseName: name, fallbackURL: url)
         } else {
-            // Fallback for other SVGs
-            SimpleAnimatedSVG(url: url)
+            // Non-layered onboarding screens: static only
+            StaticSVG(url: url)
         }
+        */
+        
+        // Static SVG for now
+        StaticSVG(url: url)
     }
 }
 
@@ -267,8 +292,21 @@ private struct LayeredZenIllustration: View {
     let fallbackURL: URL
     
     // Check if layered SVGs are available (try with and without subdirectory)
-    private var hasLayers: Bool {
-        layerURL(for: "zen-svg-1-figure") != nil
+    private var hasLayers: Bool { Self.hasLayers }
+    
+    static var hasLayers: Bool {
+        svgURL(
+            named: "zen-svg-1-figure",
+            preferredSubdirectories: [
+                "SVGs/zen-svg-1",
+                "Resources/SVGs/zen-svg-1",
+                "Zeno/Resources/SVGs/zen-svg-1",
+                "SVGs",
+                "Resources/SVGs",
+                "Zeno/Resources/SVGs",
+                nil
+            ]
+        ) != nil
     }
     
     // Helper to find layer SVG (tries subdirectory first, then root)
@@ -279,6 +317,9 @@ private struct LayeredZenIllustration: View {
                 "SVGs/zen-svg-1",
                 "zen-svg-1",
                 "SVGs",
+                "Zeno/Resources/SVGs/zen-svg-1",
+                "Resources/SVGs/zen-svg-1",
+                "Resources/zen-svg-1",
                 nil
             ]
         )
@@ -325,8 +366,8 @@ private struct LayeredZenIllustration: View {
         if hasLayers {
             layeredContent
         } else {
-            // Fallback: use the combined SVG with simple animation
-            SimpleAnimatedSVG(url: fallbackURL)
+            // Fallback: static SVG if layers missing
+            StaticSVG(url: fallbackURL)
         }
     }
     
@@ -428,6 +469,7 @@ private struct LayeredZenIllustration: View {
     }
 }
 
+#if false
 // MARK: - Layered Generic Illustration (4–5 layers)
 
 /// Generic layered renderer used for other onboarding illustrations.
@@ -550,59 +592,176 @@ private struct LayeredGenericIllustration: View {
         )
     }
 }
+#endif
 
-// MARK: - Simple Animated SVG (Fallback for non-layered illustrations)
+// MARK: - Layered Generic Illustration (Walk-to-Unlock)
 
-/// For SVGs that don't have layered versions, apply simple unified animation.
-private struct SimpleAnimatedSVG: View {
-    let url: URL
+/// Four-layer animation for non-zen illustrations that have background/accent/figure/foreground.
+/// Each layer animates independently like zen-svg-1.
+private struct LayeredGenericIllustration: View {
+    let baseName: String
+    let fallbackURL: URL
     
     private enum Config {
-        static let breatheScale: CGFloat = 0.02
-        static let breatheSpeed: Double = 0.8
-        static let floatOffset: CGFloat = 8
-        static let floatSpeed: Double = 0.5
-        static let glowMin: Double = 0.15
-        static let glowMax: Double = 0.4
-        static let glowSpeed: Double = 0.6
+        // BACKGROUND: Slow breathing scale (anchors scene but still alive)
+        static let bgBreathScale: CGFloat = 0.004
+        static let bgBreathSpeed: Double = 0.25
+        
+        // ACCENT: Opacity + scale pulse (neon energy effect)
+        static let accentOpacityMin: Double = 0.75
+        static let accentOpacityMax: Double = 1.0
+        static let accentPulseSpeed: Double = 0.4
+        static let accentScaleMin: CGFloat = 0.995
+        static let accentScaleMax: CGFloat = 1.008
+        
+        // FIGURE: Breathing + float
+        static let figureBreathScale: CGFloat = 0.008
+        static let figureBreathSpeed: Double = 0.5
+        static let figureFloatOffset: CGFloat = 3
+        static let figureFloatSpeed: Double = 0.3
+        
+        // FOREGROUND: Subtle opacity shimmer
+        static let fgOpacityMin: Double = 0.88
+        static let fgOpacityMax: Double = 1.0
+        static let fgPulseSpeed: Double = 0.55
+        
+        // AMBIENT GLOW: Behind everything
+        static let glowOpacityMin: Double = 0.12
+        static let glowOpacityMax: Double = 0.28
+        static let glowPulseSpeed: Double = 0.35
+    }
+    
+    static func hasLayers(for baseName: String) -> Bool {
+        layerURL(for: baseName, suffix: "figure") != nil
+    }
+    
+    private var hasAnyLayer: Bool {
+        layerURL(for: "figure") != nil ||
+        layerURL(for: "background") != nil ||
+        layerURL(for: "accent") != nil ||
+        layerURL(for: "foreground") != nil
     }
     
     var body: some View {
+        if hasAnyLayer {
+            layeredContent
+        } else {
+            StaticSVG(url: fallbackURL)
+        }
+    }
+    
+    @ViewBuilder
+    private var layeredContent: some View {
         TimelineView(.animation) { timeline in
             let time = timeline.date.timeIntervalSinceReferenceDate
             
-            let breathePhase = sin(time * Config.breatheSpeed * .pi * 2)
-            let floatPhase = sin(time * Config.floatSpeed * .pi * 2)
-            let glowPhase = sin(time * Config.glowSpeed * .pi * 2)
+            // === Calculate animation phases for each layer ===
             
-            let scale = 1.0 + (Config.breatheScale * breathePhase)
-            let yOffset = Config.floatOffset * floatPhase
-            let glowOpacity = Config.glowMin + (Config.glowMax - Config.glowMin) * ((glowPhase + 1) / 2)
+            // Background: slow breathing
+            let bgBreathPhase = sin(time * Config.bgBreathSpeed * .pi * 2)
+            let bgScale = 1.0 + (Config.bgBreathScale * bgBreathPhase)
             
+            // Accent: opacity + scale pulse (neon energy)
+            let accentPhase = sin(time * Config.accentPulseSpeed * .pi * 2)
+            let accentOpacity = Config.accentOpacityMin + (Config.accentOpacityMax - Config.accentOpacityMin) * ((accentPhase + 1) / 2)
+            let accentScale = Config.accentScaleMin + (Config.accentScaleMax - Config.accentScaleMin) * ((accentPhase + 1) / 2)
+            
+            // Figure: breathing + floating
+            let figureBreathPhase = sin(time * Config.figureBreathSpeed * .pi * 2)
+            let figureFloatPhase = sin(time * Config.figureFloatSpeed * .pi * 2)
+            let figureScale = 1.0 + (Config.figureBreathScale * figureBreathPhase)
+            let figureOffsetY = Config.figureFloatOffset * figureFloatPhase
+            
+            // Foreground: subtle opacity shimmer
+            let fgPulsePhase = sin(time * Config.fgPulseSpeed * .pi * 2)
+            let fgOpacity = Config.fgOpacityMin + (Config.fgOpacityMax - Config.fgOpacityMin) * ((fgPulsePhase + 1) / 2)
+            
+            // Ambient glow
+            let glowPhase = sin(time * Config.glowPulseSpeed * .pi * 2)
+            let glowOpacity = Config.glowOpacityMin + (Config.glowOpacityMax - Config.glowOpacityMin) * ((glowPhase + 1) / 2)
+            
+            // === Compose layers (each animated) ===
             ZStack {
+                // Layer 0: Ambient glow
                 Circle()
                     .fill(
                         RadialGradient(
                             colors: [
                                 ZenoTokens.ColorBase.Acid._400.opacity(glowOpacity),
-                                ZenoTokens.ColorBase.Acid._400.opacity(glowOpacity * 0.3),
+                                ZenoTokens.ColorBase.Sand._500.opacity(glowOpacity * 0.35),
                                 Color.clear
                             ],
                             center: .center,
-                            startRadius: 20,
+                            startRadius: 16,
                             endRadius: 200
                         )
                     )
-                    .frame(width: 300, height: 300)
-                    .blur(radius: 50)
-                    .offset(y: -60)
+                    .frame(width: 320, height: 320)
+                    .blur(radius: 55)
+                    .offset(y: -50)
                 
-                SVGView(contentsOf: url)
-                    .aspectRatio(contentMode: .fit)
-                    .scaleEffect(scale)
-                    .offset(y: yOffset)
+                // Layer 1: Background (slow breathing scale)
+                if let backgroundURL = layerURL(for: "background") {
+                    SVGView(contentsOf: backgroundURL)
+                        .aspectRatio(contentMode: .fit)
+                        .scaleEffect(bgScale)
+                }
+                
+                // Layer 2: Accent (opacity + scale pulse for neon energy)
+                if let accentURL = layerURL(for: "accent") {
+                    SVGView(contentsOf: accentURL)
+                        .aspectRatio(contentMode: .fit)
+                        .opacity(accentOpacity)
+                        .scaleEffect(accentScale)
+                }
+                
+                // Layer 3: Figure (breathing + floating)
+                if let figureURL = layerURL(for: "figure") {
+                    SVGView(contentsOf: figureURL)
+                        .aspectRatio(contentMode: .fit)
+                        .scaleEffect(figureScale)
+                        .offset(y: figureOffsetY)
+                }
+                
+                // Layer 4: Foreground (subtle shimmer)
+                if let foregroundURL = layerURL(for: "foreground") {
+                    SVGView(contentsOf: foregroundURL)
+                        .aspectRatio(contentMode: .fit)
+                        .opacity(fgOpacity)
+                }
             }
         }
+    }
+    
+    private func layerURL(for suffix: String) -> URL? {
+        Self.layerURL(for: baseName, suffix: suffix)
+    }
+    
+    private static func layerURL(for baseName: String, suffix: String) -> URL? {
+        svgURL(
+            named: "\(baseName)-\(suffix)",
+            preferredSubdirectories: [
+                "SVGs/\(baseName)",
+                "Resources/SVGs/\(baseName)",
+                "Zeno/Resources/SVGs/\(baseName)",
+                "SVGs",
+                "Resources/SVGs",
+                "Zeno/Resources/SVGs",
+                baseName,
+                nil
+            ]
+        )
+    }
+}
+
+// MARK: - Static SVG (fallback when layers are missing)
+
+private struct StaticSVG: View {
+    let url: URL
+    
+    var body: some View {
+        SVGView(contentsOf: url)
+            .aspectRatio(contentMode: .fit)
     }
 }
 
@@ -614,14 +773,21 @@ private func svgURL(
     named name: String,
     preferredSubdirectories: [String?] = [
         // Common folder-reference locations we use in the app bundle
+        nil,
         "SVGs",
         "Zeno/Resources/SVGs",
         "Resources/SVGs",
-        "Resources",
-        nil
+        "Resources"
     ]
 ) -> URL? {
-    for subdirectory in preferredSubdirectories {
+    // Expand with name-specific folders at call time to avoid referencing
+    // another parameter from the default argument.
+    let searchOrder = preferredSubdirectories.flatMap { base -> [String?] in
+        guard let base else { return [nil] }
+        return [base, "\(base)/\(name)"]
+    }
+    
+    for subdirectory in searchOrder {
         if let url = Bundle.main.url(forResource: name, withExtension: "svg", subdirectory: subdirectory) {
             return url
         }
@@ -633,18 +799,12 @@ private func svgURL(
         if let enumerator = fm.enumerator(at: root, includingPropertiesForKeys: nil) {
             for case let fileURL as URL in enumerator {
                 if fileURL.lastPathComponent == "\(name).svg" {
-#if DEBUG
-                    print("ℹ️ SVG found via deep search: \(fileURL.path)")
-#endif
                     return fileURL
                 }
             }
         }
     }
     
-#if DEBUG
-    print("⚠️ SVG not found: \(name)")
-#endif
     return nil
 }
 

@@ -1,5 +1,5 @@
 ---
-description: Complete guide for SVG illustrations in Zeno. Covers the full workflow: receiving SVG → recoloring → splitting into layers → animating. Use this for all illustration work.
+description: SVG illustration workflow for Zeno. Covers recoloring, splitting into layers, and animating.
 globs:
   - "**/*.svg"
   - "**/SVGs/**"
@@ -8,257 +8,127 @@ globs:
 
 # Zeno SVG Illustrations
 
-> Complete guide for processing, styling, layering, and animating SVG illustrations.
+## Workflow
+
+1. **Recolor** — Apply Zeno palette
+2. **Clean** — Remove backgrounds, fix viewBox
+3. **Split** — Separate into 4 semantic layers
+4. **Animate** — Each layer gets independent animation
 
 ---
 
-## Workflow Overview
+## Color System
 
-When the user provides a single SVG illustration:
+### Layer → Color Mapping
 
-1. **Recolor** — Apply Zeno color palette (replace all colors per mapping table)
-2. **Clean** — Remove backgrounds, fix viewBox, remove fixed dimensions
-3. **Split** — Separate into semantic layers for independent animation
-4. **Animate** — Apply per-layer animations in SwiftUI
+| Layer | Colors | Token |
+|-------|--------|-------|
+| **Background** | `#D18C82`, `#965846`, gradients | Clay._400, Clay._500 |
+| **Accent** | `#CCFF00` | Acid._400 (neon/energy) |
+| **Figure** | `#B4913E`, `#4A2219` | Brass._400 (body), Clay._800 (outlines) |
+| **Foreground** | `#FEFEFE`, `#FFFFFF` | White highlights |
+
+### Color Replacements
 
 ```
-User provides SVG
-       ↓
-┌──────────────────┐
-│  1. RECOLOR      │  Apply color mapping table
-└──────────────────┘
-       ↓
-┌──────────────────┐
-│  2. CLEAN        │  Remove backgrounds, fix viewBox
-└──────────────────┘
-       ↓
-┌──────────────────┐
-│  3. SPLIT        │  Create layer files (rays, figure, etc.)
-└──────────────────┘
-       ↓
-┌──────────────────┐
-│  4. ANIMATE      │  Apply SwiftUI animations per layer
-└──────────────────┘
+DELETE:      Large background rectangles, rgb(254,254,254)
+→ #4A2219:   #000000, #0A0F0D, #1A1A1A, rgb(2,1,1)
+→ #965846:   #5D8691, rgb(5,51,242)
+→ #D18C82:   #8A918D, rgb(136,216,250)
+KEEP:        #CCFF00, #B4913E, #D8BF9B
 ```
 
 ---
 
-# PART 1: Color System
+## Layer Splitting
 
-## Color Mapping Table
+### Standard 4-Layer Structure
 
-| Role | Hex Code | Token | Usage |
-|------|----------|-------|-------|
-| **Background** | `transparent` | — | Remove solid backgrounds |
-| **Primary Body** | `#B4913E` | `Brass._400` | Main figure/character, golden elements |
-| **Skin/Flesh** | `#D8BF9B` | `Sand._300` | Face, exposed skin, light warm surfaces |
-| **Accent Warm** | `#D18C82` | `Clay._400` | Clouds, soft decorative elements |
-| **Accent Earth** | `#965846` | `Clay._500` | Palm trees, foliage, organic shapes |
-| **Outline/Structure** | `#4A2219` | `Clay._800` | Outlines, patterns, structural lines |
-| **Energy/Neon** | `#CCFF00` | `Acid._400` | Rays, glows, highlights, energy |
-| **Floor/Ground** | `#B4913E` | `Brass._400` | Pathways, floors, grounded surfaces |
-
-## Color Replacement Rules
-
-### DELETE (Background Rectangles)
-```
-Any large rectangle filling the viewBox → DELETE the <path> entirely
-```
-
-### Replace Black/Dark Colors → Clay._800
-```
-#000000 → #4A2219
-#0A0F0D → #4A2219
-#1A1A1A → #4A2219
-#020101 → #4A2219
-rgb(2,1,1) → #4A2219
-```
-
-### Replace Cool Greys/Blues → Clay Tones
-```
-#5D8691 (Silt/Teal) → #965846 (Clay._500) for organic elements
-#8A918D (Moss Grey) → #D18C82 (Clay._400) for soft/cloud elements
-rgb(136,216,250) → #D18C82 (Clay._400) for cloud-like shapes
-rgb(5,51,242) → #965846 (Clay._500) for structural elements
-```
-
-### Keep As-Is
-```
-#CCFF00 (Acid Green) — energy/highlights
-#B4913E (Brass Gold) — body/golden elements
-#D8BF9B (Sand) — skin tones only (not backgrounds)
-```
-
----
-
-# PART 2: Cleaning & Preparation
-
-## Checklist Before Splitting
-
-- [ ] Remove solid background rectangle (usually first `<path>`)
-- [ ] Replace all colors per mapping table above
-- [ ] Ensure `viewBox` is present (e.g., `viewBox="0 0 1536 2048"`)
-- [ ] Remove fixed `width` and `height` attributes from `<svg>`
-- [ ] Test render on dark background (`#141C18`) for contrast
-
----
-
-# PART 3: Layer Splitting
-
-## Why Split?
-
-Splitting allows independent animations per element:
-- Rays can rotate/pulse
-- Figure can breathe/float
-- Clouds can drift
-- Palms can sway
-
-## Layer Names & Files
-
-For an illustration named `zen-svg-1`, create these files:
+Every illustration gets split into these 4 layers + 1 fallback:
 
 | Layer | Filename | Content |
 |-------|----------|---------|
-| Rays/Energy | `zen-svg-1-rays.svg` | Sun rays, energy bursts |
-| Halo/Glow | `zen-svg-1-halo.svg` | Glow rings, halos |
-| Clouds | `zen-svg-1-clouds.svg` | Cloud shapes, soft accents |
-| Palms/Foliage | `zen-svg-1-palms.svg` | Trees, plants, organic sides |
-| Patterns | `zen-svg-1-patterns.svg` | Decorative lines, patterns |
-| Ground | `zen-svg-1-ground.svg` | Floor, base, ground plane |
-| Figure | `zen-svg-1-figure.svg` | Main character/body |
-| **Full (fallback)** | `zen-svg-1.svg` | Complete combined illustration |
+| Background | `<name>-background.svg` | Environment, clouds, ground, structures |
+| Accent | `<name>-accent.svg` | Neon energy, glows, highlights (`#CCFF00`) |
+| Figure | `<name>-figure.svg` | Main character body + outlines |
+| Foreground | `<name>-foreground.svg` | White highlights, small details |
+| **Fallback** | `<name>.svg` | Complete combined illustration |
 
-## Folder Structure
+### How to Split
+
+1. Read the SVG and identify paths by `fill` color
+2. Group paths into layers based on color mapping above
+3. Create 4 new files with same `viewBox`, each containing only relevant `<path>` elements
+4. Keep original as fallback
+
+### Folder Structure
 
 ```
 Zeno/Resources/SVGs/
-├── zen-svg-1.svg              ← Full fallback
-└── zen-svg-1/
-    ├── zen-svg-1-rays.svg
-    ├── zen-svg-1-halo.svg
-    ├── zen-svg-1-clouds.svg
-    ├── zen-svg-1-palms.svg
-    ├── zen-svg-1-patterns.svg
-    ├── zen-svg-1-ground.svg
-    └── zen-svg-1-figure.svg
+└── <illustration-name>/
+    ├── <name>.svg              ← Fallback
+    ├── <name>-background.svg
+    ├── <name>-accent.svg
+    ├── <name>-figure.svg
+    └── <name>-foreground.svg
 ```
-
-## How to Split
-
-1. Open the cleaned/recolored SVG
-2. Identify paths by their visual role (rays, clouds, figure, etc.)
-3. For each layer:
-   - Create a new file with same `<?xml>` header and `<svg>` tag
-   - Copy only the relevant `<path>` elements
-   - Keep the **same viewBox** across all layer files
-4. Save the original combined file as fallback
 
 ---
 
-# PART 4: Animation
+## Animation Config
 
-## Animation Strategy by Layer
+All 4 layers animate independently using `TimelineView(.animation)`:
 
-| Layer | Animation | Duration | Effect |
-|-------|-----------|----------|--------|
-| **Rays** | Slow rotation OR pulse scale | 8-12s | Radiant energy |
-| **Halo** | Breathing scale | 4s | Gentle pulse |
-| **Clouds** | Horizontal drift | 20s | Lazy movement |
-| **Palms** | Slight rotation sway | 6s | Organic sway |
-| **Patterns** | Shimmer/opacity | 3s | Subtle sparkle |
-| **Ground** | None (stable) | — | Anchors scene |
-| **Figure** | Breathing + float | 4-5s | Alive feeling |
+| Layer | Animation | Config |
+|-------|-----------|--------|
+| **Background** | Slow breathing scale | ±0.4% @ 0.25Hz |
+| **Accent** | Opacity + scale pulse | 75-100% opacity, ±0.65% scale @ 0.4Hz |
+| **Figure** | Breathing + float | ±0.8% scale, ±3px y-offset |
+| **Foreground** | Opacity shimmer | 88-100% @ 0.55Hz |
+| **Ambient Glow** | Radial gradient pulse | 12-28% opacity @ 0.35Hz |
 
-## SwiftUI Animation Config
+### SwiftUI Implementation
 
 ```swift
-enum IllustrationAnimation {
-    // Breathing (scale pulse)
-    static let breatheScale: CGFloat = 1.015
-    static let breatheDuration: Double = 4.0
+private enum Config {
+    // Background
+    static let bgBreathScale: CGFloat = 0.004
+    static let bgBreathSpeed: Double = 0.25
     
-    // Floating (vertical bob)
-    static let floatOffset: CGFloat = 6
-    static let floatDuration: Double = 5.0
+    // Accent
+    static let accentOpacityMin: Double = 0.75
+    static let accentOpacityMax: Double = 1.0
+    static let accentPulseSpeed: Double = 0.4
+    static let accentScaleMin: CGFloat = 0.995
+    static let accentScaleMax: CGFloat = 1.008
     
-    // Glow pulse (behind illustration)
-    static let glowMin: Double = 0.2
-    static let glowMax: Double = 0.5
-    static let glowDuration: Double = 3.0
-    static let glowRadius: CGFloat = 40
+    // Figure
+    static let figureBreathScale: CGFloat = 0.008
+    static let figureBreathSpeed: Double = 0.5
+    static let figureFloatOffset: CGFloat = 3
+    static let figureFloatSpeed: Double = 0.3
     
-    // Rays rotation
-    static let rayRotationDuration: Double = 12.0
+    // Foreground
+    static let fgOpacityMin: Double = 0.88
+    static let fgOpacityMax: Double = 1.0
+    static let fgPulseSpeed: Double = 0.55
     
-    // Cloud drift
-    static let cloudDriftOffset: CGFloat = 20
-    static let cloudDriftDuration: Double = 20.0
+    // Glow
+    static let glowOpacityMin: Double = 0.12
+    static let glowOpacityMax: Double = 0.28
+    static let glowPulseSpeed: Double = 0.35
 }
 ```
 
-## Ambient Animation (Full Illustration Fallback)
-
-When layers aren't available, apply to the whole SVG:
-
-```swift
-SVGView(contentsOf: url)
-    .scaleEffect(isBreathing ? 1.015 : 1.0)
-    .offset(y: isFloating ? -6 : 6)
-    .animation(.easeInOut(duration: 4.0).repeatForever(autoreverses: true), value: isBreathing)
-    .animation(.easeInOut(duration: 5.0).repeatForever(autoreverses: true), value: isFloating)
-```
-
 ---
 
-# PART 5: SwiftUI Integration
+## Quick Reference
 
-## Basic Usage
-
-```swift
-import SVGView
-
-SVGView(contentsOf: Bundle.main.url(forResource: "zen-svg-1", withExtension: "svg")!)
-    .aspectRatio(contentMode: .fit)
-    .frame(maxWidth: .infinity)
-    .frame(height: UIScreen.main.bounds.height * 0.42)
-```
-
-## With Animation Wrapper
-
-```swift
-AnimatedIllustration(name: "zen-svg-1")
-    .frame(height: UIScreen.main.bounds.height * 0.42)
-```
-
-## Sizing Guidelines
-
-- **Onboarding screens**: 40-45% of screen height
-- **Marketing/splash**: 50-60% of screen height
-- Always use `aspectRatio(contentMode: .fit)`
-- Use `maxWidth: .infinity` for responsive width
-
----
-
-# Quick Reference
-
-## Token → Hex Lookup
-
-| Token | Hex | Use For |
-|-------|-----|---------|
-| `Brass._400` | `#B4913E` | Body, gold, ground |
-| `Sand._300` | `#D8BF9B` | Skin, warm light |
-| `Clay._400` | `#D18C82` | Clouds, soft accent |
-| `Clay._500` | `#965846` | Palms, earth, organic |
-| `Clay._800` | `#4A2219` | Outlines, dark structure |
-| `Acid._400` | `#CCFF00` | Energy, neon, rays |
-
-## Common Color Swaps
-
-```
-rgb(254,254,254) → DELETE (background)
-rgb(2,1,1) → #4A2219
-rgb(230,56,37) → #CCFF00 (energy) or #B4913E (body)
-rgb(5,51,242) → #965846
-rgb(136,216,250) → #D18C82
-rgb(241,167,67) → #B4913E
-```
+| Token | Hex | Layer |
+|-------|-----|-------|
+| `Brass._400` | `#B4913E` | Figure (body) |
+| `Clay._800` | `#4A2219` | Figure (outlines) |
+| `Clay._400` | `#D18C82` | Background (clouds) |
+| `Clay._500` | `#965846` | Background (ground) |
+| `Acid._400` | `#CCFF00` | Accent (energy) |
+| White | `#FEFEFE` | Foreground |

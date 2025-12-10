@@ -117,31 +117,6 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
-				"Resources/SVGs/confront-your-vices.svg",
-				"Resources/SVGs/confront-your-vices/confront-your-vices-figure.svg",
-				"Resources/SVGs/confront-your-vices/confront-your-vices.svg",
-				"Resources/SVGs/walk-to-unlock.svg",
-				"Resources/SVGs/walk-to-unlock/walk-to-unlock-figure.svg",
-				"Resources/SVGs/walk-to-unlock/walk-to-unlock.svg",
-				"Resources/SVGs/x-days-in-a-year.svg",
-				"Resources/SVGs/x-days-in-a-year/x-days-in-a-year-figure.svg",
-				"Resources/SVGs/x-days-in-a-year/x-days-in-a-year.svg",
-				"Resources/SVGs/zen-svg-1-clouds.svg",
-				"Resources/SVGs/zen-svg-1-figure.svg",
-				"Resources/SVGs/zen-svg-1-ground.svg",
-				"Resources/SVGs/zen-svg-1-halo.svg",
-				"Resources/SVGs/zen-svg-1-palms.svg",
-				"Resources/SVGs/zen-svg-1-patterns.svg",
-				"Resources/SVGs/zen-svg-1-rays.svg",
-				"Resources/SVGs/zen-svg-1.svg",
-				"Resources/SVGs/zen-svg-1/zen-svg-1-clouds.svg",
-				"Resources/SVGs/zen-svg-1/zen-svg-1-figure.svg",
-				"Resources/SVGs/zen-svg-1/zen-svg-1-ground.svg",
-				"Resources/SVGs/zen-svg-1/zen-svg-1-halo.svg",
-				"Resources/SVGs/zen-svg-1/zen-svg-1-palms.svg",
-				"Resources/SVGs/zen-svg-1/zen-svg-1-patterns.svg",
-				"Resources/SVGs/zen-svg-1/zen-svg-1-rays.svg",
-				"Resources/SVGs/zen-svg-1/zen-svg-1.svg",
 			);
 			target = 279BC8C92ED157E800FAB2C9 /* Zeno */;
 		};
