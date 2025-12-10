@@ -261,3 +261,4 @@ What you learned: add ViewModel state → render with tokens → animate using s
 - “Tokens first, no hardcoded styling.”
 - “Animate content, not backgrounds.”
 - “Protocols at the edges; services are swappable.”
+

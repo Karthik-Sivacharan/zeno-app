@@ -29,12 +29,10 @@ struct HealthPermissionView: View {
                 
                 VStack(alignment: .leading, spacing: ZenoSemanticTokens.Space.md) {
                     
-                    // Education Visual (Shown when Idle)
-                    if case .idle = viewModel.state {
-                        educationVisual
-                            .padding(.bottom, ZenoSemanticTokens.Space.lg)
-                            .staggeredItem(index: 0, isVisible: contentVisible)
-                    }
+                    // Exchange Rate Visual (shown in both idle and authorized states)
+                    exchangeRateVisual
+                        .padding(.bottom, ZenoSemanticTokens.Space.lg)
+                        .staggeredItem(index: 0, isVisible: contentVisible)
                     
                     titleView
                         .staggeredItem(index: 1, isVisible: contentVisible)
@@ -64,15 +62,20 @@ struct HealthPermissionView: View {
     // MARK: - Views
     
     @ViewBuilder
-    private var educationVisual: some View {
+    private var exchangeRateVisual: some View {
+        let isAuthorized = viewModel.state == .authorized
+        let headerText = isAuthorized ? "Your Baseline" : "The Exchange Rate"
+        let stepsText = isAuthorized ? viewModel.averageSteps.formatted() : "1,000"
+        let minutesText = isAuthorized ? "\(viewModel.potentialCredits)" : "10"
+        
         VStack(alignment: .leading, spacing: ZenoSemanticTokens.Space.md) {
-            Text("The Exchange Rate")
+            Text(headerText)
                 .font(ZenoTokens.Typography.labelLarge)
                 .foregroundColor(ZenoSemanticTokens.Theme.mutedForeground)
                 .textCase(.uppercase)
             
             HStack(alignment: .firstTextBaseline, spacing: ZenoSemanticTokens.Space.sm) {
-                Text("1,000")
+                Text(stepsText)
                     .font(ZenoTokens.Typography.displayMedium)
                     .foregroundColor(ZenoSemanticTokens.Theme.foreground)
                 Text("steps")
@@ -86,7 +89,7 @@ struct HealthPermissionView: View {
                 .padding(.vertical, ZenoSemanticTokens.Space.xs)
             
             HStack(alignment: .firstTextBaseline, spacing: ZenoSemanticTokens.Space.sm) {
-                Text("10")
+                Text(minutesText)
                     .font(ZenoTokens.Typography.displayMedium)
                     .foregroundColor(ZenoSemanticTokens.Theme.primary)
                 Text("minutes")
@@ -94,6 +97,7 @@ struct HealthPermissionView: View {
                     .foregroundColor(ZenoSemanticTokens.Theme.primary)
             }
         }
+        .animation(.easeInOut, value: viewModel.state)
     }
     
     @ViewBuilder

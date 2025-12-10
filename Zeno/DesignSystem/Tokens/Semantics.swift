@@ -299,6 +299,46 @@ enum ZenoSemanticTokens {
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
+        
+        // MARK: Ambient Glow Gradients (for illustrations)
+        
+        /// The primary glow color (Acid Green - The "Energy")
+        private static let glowPrimary = ZenoTokens.ColorBase.Acid._400
+        /// The secondary glow color (Sand - warm falloff)
+        private static let glowSecondary = ZenoTokens.ColorBase.Sand._500
+        /// Ratio for secondary color opacity relative to primary
+        private static let secondaryOpacityRatio: Double = 0.35
+        
+        /// Creates a centered radial glow (original style).
+        /// Use with a Circle, blur, and optional offset.
+        static func ambientGlow(opacity: Double = ZenoTokens.OpacityLevel._25) -> RadialGradient {
+            RadialGradient(
+                colors: [
+                    glowPrimary.opacity(opacity),
+                    glowSecondary.opacity(opacity * secondaryOpacityRatio),
+                    Color.clear
+                ],
+                center: .center,
+                startRadius: ZenoTokens.SpacingScale._4,   // 16pt
+                endRadius: ZenoTokens.SpacingScale._48     // 192pt (close to 200)
+            )
+        }
+        
+        /// Creates a "stage lighting" radial glow from top of screen.
+        /// Center is positioned above the view, so only the soft falloff is visible.
+        /// Use with a Circle positioned at negative Y offset.
+        static func stageLight(opacity: Double = ZenoTokens.OpacityLevel._25) -> RadialGradient {
+            RadialGradient(
+                colors: [
+                    glowPrimary.opacity(opacity),
+                    glowSecondary.opacity(opacity * secondaryOpacityRatio),
+                    Color.clear
+                ],
+                center: .center,
+                startRadius: ZenoTokens.SpacingScale._12,  // 48pt
+                endRadius: ZenoTokens.SpacingScale._96     // 384pt (close to 400)
+            )
+        }
     }
     
     // MARK: - Glow Specs (The Energy)
