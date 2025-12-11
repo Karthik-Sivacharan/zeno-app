@@ -27,6 +27,38 @@ This roadmap sequences work into small, testable phases and emphasizes vertical 
   - 🟡 **A simple internal-only screen or debug card showing:**
     - ~~Today's steps from HealthKit (shown in HealthPermissionView).~~
     - ~~Computed credits in minutes (shown in HealthPermissionView).~~
+### Phase 3.5 – Authentication (Apple Sign In) ❌ NOT STARTED
+> **Purpose:** Verify user identity before onboarding. Architected for future backend integration.
+
+**Decisions:**
+- Apple Sign In only (no Google for MVP)
+- Auth required to use app (no guest mode)
+- Onboarding flows after successful authentication
+
+**What We Store:**
+- Apple User ID → Keychain (secure, persists across reinstalls)
+- User's name + email → UserProfileStore (captured on first sign-in only)
+- `hasCompletedAuth` flag → UserDefaults (for fast routing on app launch)
+
+**Implementation:**
+- ❌ **Create `AuthService` protocol** (`AuthProviding`) for abstraction
+- ❌ **Implement `LocalAuthService`** (Keychain-based, no backend)
+- ❌ **Build Auth Screen** with "Sign in with Apple" button
+- ❌ **Handle first sign-in** — persist name/email immediately
+- ❌ **Handle subsequent sign-ins** — restore from Keychain
+- ❌ **Handle credential revocation** — detect and redirect to auth
+- ❌ **Update app routing** — Splash → Auth (if needed) → Onboarding → Home
+
+**Backend-Ready Architecture:**
+- Protocol allows easy swap to `FirebaseAuthService` or `SupabaseAuthService`
+- User ID + token can be sent to backend for account creation
+- No code changes needed in Views — just swap the service implementation
+
+**Edge Cases:**
+- User declines Apple Sign In → Show auth screen again (required)
+- User revokes credential in Settings → Clear local state, show auth screen
+- App reinstall → Auto-restore from Keychain (silent re-auth)
+
 ### Phase 4 – Onboarding Flow (Simplified MVP) ✅ COMPLETE
 - Build:
   - ~~Splash screen.~~
