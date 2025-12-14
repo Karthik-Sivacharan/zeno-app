@@ -14,6 +14,12 @@ import Foundation
 private enum ActivityNames {
     static let blockingSchedule = "zeno.blocking.schedule"
     static let unlockSession = "zeno.unlock.session"
+    static let realtimeMonitoring = "zeno.realtime.monitoring"
+}
+
+/// Event names - must match main app
+private enum EventNames {
+    static let blockedAppUsage = "zeno.blocked.app.usage"
 }
 
 /// Shared storage keys - must match main app
@@ -104,6 +110,10 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
             // Unlock session started - shields already removed by main app
             break
             
+        case ActivityNames.realtimeMonitoring:
+            // Real-time monitoring started - shields already applied by main app
+            break
+            
         default:
             break
         }
@@ -122,6 +132,10 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
         case ActivityNames.unlockSession:
             // Unlock session expired → reapply shields (if still in schedule window)
             handleUnlockSessionEnd()
+            
+        case ActivityNames.realtimeMonitoring:
+            // Real-time monitoring ended (24-hour window) - main app will restart if needed
+            break
             
         default:
             break
@@ -149,18 +163,47 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
     
     /// Called when a credit-based unlock session expires
     private func handleUnlockSessionEnd() {
+        print("[DeviceMonitor] 🔄 Unlock session ended - forcing shield refresh")
+        
         guard let schedule = loadSchedule() else {
-            // No schedule found, just reapply shields
-            applyShields()
+            // No schedule found, just reapply shields with force refresh
+            forceShieldRefresh()
             updateSharedState(isBlocking: true)
             return
         }
         
         // Only reblock if we're still in the blocking schedule window
         if schedule.isCurrentlyActive {
-            applyShields()
+            // Force refresh shields to interrupt running apps
+            forceShieldRefresh()
             updateSharedState(isBlocking: true)
+        } else {
+            print("[DeviceMonitor] Not in blocking window - not reapplying shields")
         }
+    }
+    
+    /// Forces a shield refresh by removing and immediately reapplying shields.
+    /// This may help interrupt apps that are already running.
+    private func forceShieldRefresh() {
+        guard let selection = loadAppSelection() else {
+            print("[DeviceMonitor] No app selection found for shield refresh")
+            return
+        }
+        
+        // Step 1: Remove all shields (reset state)
+        store.shield.applications = nil
+        store.shield.applicationCategories = nil
+        store.shield.webDomains = nil
+        
+        // Step 2: Small delay to let the system process the removal
+        Thread.sleep(forTimeInterval: 0.1)
+        
+        // Step 3: Reapply shields
+        store.shield.applications = selection.applicationTokens
+        store.shield.applicationCategories = .specific(selection.categoryTokens)
+        store.shield.webDomains = selection.webDomainTokens
+        
+        print("[DeviceMonitor] ✅ Shield refresh complete")
     }
     
     // MARK: - Shield Management
@@ -211,11 +254,82 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
         }
     }
     
-    // MARK: - Warning Methods (Optional)
+    // MARK: - Event Handlers
     
     override func eventDidReachThreshold(_ event: DeviceActivityEvent.Name, activity: DeviceActivityName) {
         super.eventDidReachThreshold(event, activity: activity)
+        
+        // Handle app usage events for instant blocking
+        if event.rawValue == EventNames.blockedAppUsage {
+            switch activity.rawValue {
+            case ActivityNames.blockingSchedule:
+                // App used during blocking schedule - reapply shields if not in unlock session
+                handleBlockedAppUsageDetected()
+                
+            case ActivityNames.unlockSession:
+                // App used during unlock session - check if session has expired
+                handleUnlockSessionUsageCheck()
+                
+            default:
+                break
+            }
+        }
     }
+    
+    /// Called when a blocked app is detected being used during blocking time.
+    /// Reapplies shields to force immediate blocking even if app is already open.
+    private func handleBlockedAppUsageDetected() {
+        print("[DeviceMonitor] 🚨 Blocked app usage detected during blocking schedule")
+        
+        // Check if we're in an unlock session - if so, don't reblock
+        guard let defaults = UserDefaults(suiteName: appGroupIdentifier) else {
+            applyShields()
+            return
+        }
+        
+        if let unlockExpiresAt = defaults.object(forKey: SharedKeys.unlockExpiresAt) as? Date {
+            // Check if unlock session has expired
+            if Date() >= unlockExpiresAt {
+                // Unlock session expired, reapply blocks
+                print("[DeviceMonitor] Unlock session expired - reapplying blocks")
+                forceShieldRefresh()
+                updateSharedState(isBlocking: true)
+            } else {
+                print("[DeviceMonitor] Still in unlock session - not reapplying shields")
+            }
+        } else {
+            // No unlock session, immediately reapply blocks
+            print("[DeviceMonitor] No unlock session - reapplying blocks")
+            applyShields()
+        }
+    }
+    
+    /// Called periodically when apps are being used during an unlock session.
+    /// Checks if the unlock session has expired and reblocks if needed.
+    private func handleUnlockSessionUsageCheck() {
+        print("[DeviceMonitor] 🔍 Checking unlock session status while app is in use")
+        
+        guard let defaults = UserDefaults(suiteName: appGroupIdentifier),
+              let unlockExpiresAt = defaults.object(forKey: SharedKeys.unlockExpiresAt) as? Date else {
+            // No unlock session found - this shouldn't happen but reblock to be safe
+            print("[DeviceMonitor] No unlock session found - reblocking")
+            forceShieldRefresh()
+            updateSharedState(isBlocking: true)
+            return
+        }
+        
+        // Check if unlock session has expired
+        if Date() >= unlockExpiresAt {
+            print("[DeviceMonitor] ⏰ Unlock session expired while app in use - forcing shield refresh")
+            forceShieldRefresh()
+            updateSharedState(isBlocking: true)
+        } else {
+            let remaining = Int(unlockExpiresAt.timeIntervalSinceNow)
+            print("[DeviceMonitor] Unlock session still active - \(remaining)s remaining")
+        }
+    }
+    
+    // MARK: - Warning Methods (Optional)
     
     override func intervalWillStartWarning(for activity: DeviceActivityName) {
         super.intervalWillStartWarning(for: activity)
