@@ -202,19 +202,21 @@ struct HomeView: View {
             // Duration chips - only show if user can afford at least one duration AND apps are shielded
             if viewModel.canAffordAnyDuration && viewModel.isBlocking {
                 VStack(alignment: .leading, spacing: ZenoSemanticTokens.Space.sm) {
-                    Text("Select Duration")
+                    Text("Select duration to use apps")
                         .font(ZenoTokens.Typography.labelSmall)
                         .foregroundColor(ZenoSemanticTokens.Theme.mutedForeground)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     
-                    HStack(spacing: ZenoSemanticTokens.Space.sm) {
-                        ForEach(viewModel.availableDurations, id: \.duration.id) { item in
-                            TimeChip(
-                                minutes: item.duration.rawValue,
-                                isSelected: viewModel.selectedDuration == item.duration,
-                                isEnabled: item.isEnabled
-                            ) {
-                                viewModel.selectDuration(item.duration)
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: ZenoSemanticTokens.Space.sm) {
+                            ForEach(viewModel.availableDurations, id: \.duration.id) { item in
+                                TimeChip(
+                                    minutes: item.duration.rawValue,
+                                    isSelected: viewModel.selectedDuration == item.duration,
+                                    isEnabled: item.isEnabled
+                                ) {
+                                    viewModel.selectDuration(item.duration)
+                                }
                             }
                         }
                     }

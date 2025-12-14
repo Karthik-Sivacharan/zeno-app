@@ -21,6 +21,7 @@ struct TimeChip: View {
             Text("\(minutes) min")
                 .font(ZenoTokens.Typography.labelMedium)
                 .foregroundColor(foregroundColor)
+                .fixedSize()  // Prevents text from wrapping on small screens
                 .padding(.horizontal, ZenoSemanticTokens.Space.md)
                 .padding(.vertical, ZenoSemanticTokens.Space.sm)
                 .background(backgroundColor)
